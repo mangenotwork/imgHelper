@@ -23,6 +23,20 @@ type CanvasContext struct {
 	LayerList []Layer
 }
 
+func (ctx *CanvasContext) AddLayer(layer Layer) {
+	ctx.LayerList = append(ctx.LayerList, layer)
+}
+
+func (ctx *CanvasContext) Do() (int, error) {
+	i := 0
+	for _, v := range ctx.LayerList {
+		i++
+		err := v.Draw(ctx)
+		return i, err
+	}
+	return i, nil
+}
+
 func (ctx *CanvasContext) SaveToFile(filePath string) {
 	outputFile, err := os.Create(filePath)
 	if err != nil {
