@@ -6,14 +6,14 @@ import (
 	"math"
 )
 
-// RotateOps 旋转操作
-type RotateOps struct {
+// opsRotate 旋转操作
+type opsRotate struct {
 	Angle float64
 }
 
-// OpsRotate 选择画布
+// OpsRotate 旋转画布
 func OpsRotate(angle float64) func(ctx *CanvasContext) error {
-	ops := &RotateOps{
+	ops := &opsRotate{
 		Angle: angle,
 	}
 	return ops.Draw
@@ -32,7 +32,7 @@ func OpsRotate270() func(ctx *CanvasContext) error {
 	return OpsRotate(270)
 }
 
-func (layer *RotateOps) Draw(ctx *CanvasContext) error {
+func (layer *opsRotate) Draw(ctx *CanvasContext) error {
 	ctx.Dst = Rotate(ctx.Dst, layer.Angle).(*image.RGBA)
 	return nil
 }

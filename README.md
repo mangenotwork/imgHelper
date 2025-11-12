@@ -5,23 +5,74 @@
 设计图像操作方法ops，画布和图层都能使用；
 包含了众多图像的处理算法，绘制则可进行配置方式进行绘制详细用法见Readme......
 
-#### 设计
+### 设计
 
 - canvas ： 画布, 图层绘制到画布上，支持各种绘制方法
 - layer ：图层，进行图像处理和绘制最小单元,含有图像资源，文本，几何绘制，蒙层，操作画布
 - ops ：图像处理操作，可以操作图层和画布
+- func : 各种图像处理方法函数，输入 image.Image 处理后 输出 image.Image
 
-#### 先来一个例子
 
-打开一张图片作为画布，然后打开第二张图缩放到200*200，旋转66度，绘制到画布的x0,y0=100,100的位置
+### 先来一个例子
+
+打开一张图片作为画布，然后打开第二张图为一个图层缩放到200*200，旋转66度，绘制到画布的x0,y0=100,100的位置，然后画布整体旋转90度
 
 ```go
+func case13() {
+	// 打开一张图片作为图层
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./case6.png", imgHelper.Range{X0: 100, Y0: 100})
+	if err != nil {
+		log.Fatal(err)
+	}
+	// 图层执行缩放和旋转操作
+	imgLayer.Ext(imgHelper.OpsScale(100, 200)).Ext(imgHelper.OpsRotate(66))
+	// 图层画绘制到画布上并保存到图片文件
+err = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(imgLayer).Ext(imgHelper.OpsRotate90()).SaveToFile("./case13.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
 
+### 调用灵活性
+
+该库提供很多图像处理方法函数，可以将图层的Resource进行各种处理，不喜欢上面的写法风格，可进行另一种写法
+
+```go
+func case14() {
+	// 打开一张图片作为图层
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./case6.png", imgHelper.Range{X0: 100, Y0: 100})
+	if err != nil {
+		log.Fatal(err)
+	}
+	// 缩放函数将图层的图片资源进行缩放
+	imgHelper.Scale(imgLayer.Resource, 100, 200)
+	// 旋转函数将图层的图片资源进行旋转
+	imgHelper.Rotate(imgLayer.Resource, 66)
+	// 图层画绘制到画布上并保存到图片文件
+	err = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(imgLayer).Ext(imgHelper.OpsRotate90()).SaveToFile("./case14.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+### 简单处理图片 - 直接操作图层
+
+读取一个图片为图层进行缩放，直接输出这个图层为图片
+
+```go
+func case5() {
+    imgLayer, err := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+    if err != nil {
+        log.Fatal(err)
+    }
+    imgLayer.Ext(imgHelper.OpsScale(100, 100)).Save("./case5.png")
+}
 ```
 
 #### todo 
 
-- 缩放图层
 - 图层减法
 - 图层乘法
 - 图层除法
@@ -48,45 +99,7 @@
 
 #### 人像相关
 
-## 简单例子
 
-#### 创建一个画布读取一个图片放在创建的图层上进行缩放，最终输出图片
-```go
-func main() {
-    cas := imgHelper.NewCanvas(400, 400) // 创建400*400的画布
-    
-    testImg, err := imgHelper.OpenImgFromLocalFile("./test.png") // 本地读取test.png图片
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    imgLayer := &imgHelper.ImgLayer{ // 创建一个图层,从右上角x0y0=100*100的位置开始绘制
-        Resource: imgHelper.Scale(testImg, 100, 100), // 将资源单独进行缩放到100*100
-        X0:       100,
-        Y0:       100,
-    }
-    _ = imgLayer.Scale(200, 200) //将图层整体缩放到200*200
-    
-    cas.AddLayer(imgLayer)       // 图层添加到画布
-    _, _ = cas.Do()              // 执行绘制
-    cas.SaveToFile("./case.png") // 存储到本地
-}
-```
-
-#### 读取一个图片放在创建的图层上进行缩放，直接输出这个图层为图片
-```go
-func main() {
-    src, err := imgHelper.OpenImgFromLocalFile("./test.png")
-    if err != nil {
-        log.Fatal(err)
-    }
-    imgLayer := imgHelper.ImgLayer{
-        Resource: src,
-    }
-    _ = imgLayer.Scale(200, 200)
-    imgLayer.Save("./case.png")
-}
-```
 
 ## 使用文档
 

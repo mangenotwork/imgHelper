@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"log"
 	"os"
 )
 
@@ -199,7 +198,7 @@ func (ctx *CanvasContext) SaveToFile(filePath string) error {
 	}
 	outputFile, err := os.Create(filePath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer func() {
 		_ = outputFile.Close()
@@ -208,7 +207,6 @@ func (ctx *CanvasContext) SaveToFile(filePath string) error {
 	// todo 判断图片类型，根据类型进行存储
 	err = png.Encode(outputFile, ctx.Dst)
 	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 	return nil

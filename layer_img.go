@@ -6,7 +6,6 @@ import (
 	"image/draw"
 	"image/png"
 	"io"
-	"log"
 	"os"
 )
 
@@ -19,26 +18,31 @@ type ImgLayer struct {
 	Y1       int
 }
 
-// NewImgLayerFromLocalFile 从本地打开一张图片作为图层放在画布的指定范围
-func NewImgLayerFromLocalFile(imgPath string, rg Range) (*ImgLayer, error) {
+// ImgLayerFromLocalFile 从本地打开一张图片作为图层放在画布的指定范围
+func ImgLayerFromLocalFile(imgPath string, rg Range) (*ImgLayer, error) {
 	resource, err := OpenImgFromLocalFile(imgPath)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
-	return &ImgLayer{
+	layer := &ImgLayer{
 		Resource: resource,
 		X0:       rg.X0,
 		Y0:       rg.Y0,
 		X1:       rg.X1,
 		Y1:       rg.Y1,
-	}, nil
+	}
+	if layer.X1 == 0 {
+		layer.X1 = rg.X0 + resource.Bounds().Dx()
+	}
+	if layer.Y1 == 0 {
+		layer.Y1 = rg.Y0 + resource.Bounds().Dy()
+	}
+	return layer, nil
 }
 
-func NewImgLayerFromFromReader(rd io.Reader, rg Range) (*ImgLayer, error) {
+func ImgLayerFromFromReader(rd io.Reader, rg Range) (*ImgLayer, error) {
 	resource, err := OpenImgFromReader(rd)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &ImgLayer{
@@ -82,25 +86,25 @@ func (imgLayer *ImgLayer) Scale(targetWidth, targetHeight int) error {
 	return nil
 }
 
-func (imgLayer *ImgLayer) Save(filePath string) {
+func (imgLayer *ImgLayer) Save(filePath string) error {
 	outputFile, err := os.Create(filePath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer func() {
 		_ = outputFile.Close()
 	}()
 
 	// todo 判断图片类型，根据类型进行存储
-	err = png.Encode(outputFile, imgLayer.Resource)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return png.Encode(outputFile, imgLayer.Resource)
 }
 
 func (imgLayer *ImgLayer) Ext(fn func(ctx *CanvasContext) error) *ImgLayer {
+	bounds := imgLayer.Resource.Bounds()
+	rgbaImg := image.NewRGBA(bounds)
+	draw.Draw(rgbaImg, bounds, imgLayer.Resource, bounds.Min, draw.Src)
 	nowImgLayerCtx := &CanvasContext{
-		Dst: imgLayer.Resource.(*image.RGBA),
+		Dst: rgbaImg,
 	}
 	nowImgLayerCtx.Err = errors.Join(nowImgLayerCtx.Err, fn(nowImgLayerCtx))
 	imgLayer.Resource = nowImgLayerCtx.Dst
