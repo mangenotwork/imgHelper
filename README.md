@@ -1,5 +1,5 @@
 # imgHelper
-改库提供图像处理和绘制；
+该库提供图像处理和绘制；
 设计画布，所有图像处理和绘制都在画布上进行；
 设计最小粒度是图层，图层可复用在并发处理场景下效率提升；
 设计图像操作方法ops，画布和图层都能使用；
@@ -15,10 +15,12 @@
 
 ### 先来一个例子
 
-打开一张图片作为画布，然后打开第二张图为一个图层缩放到200*200，旋转66度，绘制到画布的x0,y0=100,100的位置，然后画布整体旋转90度
+打开一张图片作为画布，然后打开第二张图为一个图层缩放到100*200，旋转66度，绘制到画布的x0,y0=100,100的位置，然后画布整体旋转90度
 
 ```go
 func case13() {
+	// 创建画布
+	cas := imgHelper.CanvasFromLocalImg("./test.png")
 	// 打开一张图片作为图层
 	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./case6.png", imgHelper.Range{X0: 100, Y0: 100})
 	if err != nil {
@@ -27,20 +29,20 @@ func case13() {
 	// 图层执行缩放和旋转操作
 	imgLayer.Ext(imgHelper.OpsScale(100, 200)).Ext(imgHelper.OpsRotate(66))
 	// 图层画绘制到画布上并保存到图片文件
-err = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(imgLayer).Ext(imgHelper.OpsRotate90()).SaveToFile("./case13.png")
+        err = cas.AddLayer(imgLayer).Ext(imgHelper.OpsRotate90()).SaveToFile("./case13.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 ```
 
-### 调用灵活性
+### 调用灵活
 
-该库提供很多图像处理方法函数，可以将图层的Resource进行各种处理，不喜欢上面的写法风格，可进行另一种写法
+该库提供很多图像处理方法函数，可以将图层的Resource进行各种处理，不喜欢上面的写法风格，支持下面写法
 
 ```go
 func case14() {
-	// 打开一张图片作为图层
+    cas := imgHelper.CanvasFromLocalImg("./test.png")
 	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./case6.png", imgHelper.Range{X0: 100, Y0: 100})
 	if err != nil {
 		log.Fatal(err)
@@ -50,14 +52,14 @@ func case14() {
 	// 旋转函数将图层的图片资源进行旋转
 	imgHelper.Rotate(imgLayer.Resource, 66)
 	// 图层画绘制到画布上并保存到图片文件
-	err = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(imgLayer).Ext(imgHelper.OpsRotate90()).SaveToFile("./case14.png")
+	err = cas.AddLayer(imgLayer).Ext(imgHelper.OpsRotate90()).SaveToFile("./case14.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 ```
 
-### 简单处理图片 - 直接操作图层
+### 只想简单处理图片 - 直接操作图层
 
 读取一个图片为图层进行缩放，直接输出这个图层为图片
 
@@ -69,6 +71,61 @@ func case5() {
     }
     imgLayer.Ext(imgHelper.OpsScale(100, 100)).Save("./case5.png")
 }
+```
+
+### 只想使用该库的图像处理方法
+
+读取一个图片进行缩放到100*100然后保存
+
+```go
+func case15() {
+    file, err := os.Open("./test.png")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer file.Close()
+    src, err := png.Decode(file)
+    if err != nil {
+        log.Fatal(err)
+    }
+    // 调用图像缩放方法
+    dst := imgHelper.Scale(src, 100, 100)
+    outputFile, err := os.Create("./case15.png")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer outputFile.Close()
+    err = png.Encode(outputFile, dst)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+### todo 还支持绘制
+
+几何绘制
+
+文本绘制
+
+### todo 再来绘制点特别的
+
+绘制渐变文本
+
+绘制蒙层
+
+### todo 该库还有很多功能，图像分割，人像处理，相似度
+
+### todo gif相关的处理这里也有
+
+### todo 更多的详情请见使用文档或go mod tidy 自己体验
+
+### todo 如果没用满足你需求也没关系，你可以拉下代码自行修改
+
+### 该库的依赖如下，协议均为MIT放心使用和学习，对这个项目感兴趣可以找我学习交流邮箱: 2912882908@qq.com
+
+```
+require golang.org/x/image v0.32.0
 ```
 
 #### todo 
