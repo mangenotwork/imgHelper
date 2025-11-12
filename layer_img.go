@@ -1,6 +1,7 @@
 package imgHelper
 
 import (
+	"errors"
 	"image"
 	"image/draw"
 	"image/png"
@@ -50,6 +51,12 @@ func NewImgLayerFromFromReader(rd io.Reader, rg Range) (*ImgLayer, error) {
 }
 
 func (imgLayer *ImgLayer) Draw(ctx *CanvasContext) error {
+	if imgLayer.X1 == 0 {
+		imgLayer.X1 = imgLayer.X0 + imgLayer.Resource.Bounds().Dx()
+	}
+	if imgLayer.Y1 == 0 {
+		imgLayer.Y1 = imgLayer.Y0 + imgLayer.Resource.Bounds().Dy()
+	}
 	draw.Draw(
 		ctx.Dst,
 		image.Rect(imgLayer.X0, imgLayer.Y0, imgLayer.X1, imgLayer.Y1),
@@ -89,4 +96,13 @@ func (imgLayer *ImgLayer) Save(filePath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (imgLayer *ImgLayer) Ext(fn func(ctx *CanvasContext) error) *ImgLayer {
+	nowImgLayerCtx := &CanvasContext{
+		Dst: imgLayer.Resource.(*image.RGBA),
+	}
+	nowImgLayerCtx.Err = errors.Join(nowImgLayerCtx.Err, fn(nowImgLayerCtx))
+	imgLayer.Resource = nowImgLayerCtx.Dst
+	return imgLayer
 }

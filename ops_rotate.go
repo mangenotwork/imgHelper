@@ -6,36 +6,38 @@ import (
 	"math"
 )
 
-// RotateLayer 旋转图层
-type RotateLayer struct {
+// RotateOps 旋转操作
+type RotateOps struct {
 	Angle float64
 }
 
-func NewRotateLayer(angle float64) *RotateLayer {
-	return &RotateLayer{
+// OpsRotate 选择画布
+func OpsRotate(angle float64) func(ctx *CanvasContext) error {
+	ops := &RotateOps{
 		Angle: angle,
 	}
+	return ops.Draw
 }
 
-// Rotate90Layer 旋转90度的图层
-func Rotate90Layer() func(ctx *CanvasContext) error {
-	return NewRotateLayer(90).Draw
+// OpsRotate90 旋转画布90度的操作
+func OpsRotate90() func(ctx *CanvasContext) error {
+	return OpsRotate(90)
 }
 
-func Rotate180Layer() func(ctx *CanvasContext) error {
-	return NewRotateLayer(180).Draw
+func OpsRotate180() func(ctx *CanvasContext) error {
+	return OpsRotate(180)
 }
 
-func Rotate270Layer() func(ctx *CanvasContext) error {
-	return NewRotateLayer(270).Draw
+func OpsRotate270() func(ctx *CanvasContext) error {
+	return OpsRotate(270)
 }
 
-func (layer *RotateLayer) Draw(ctx *CanvasContext) error {
+func (layer *RotateOps) Draw(ctx *CanvasContext) error {
 	ctx.Dst = Rotate(ctx.Dst, layer.Angle).(*image.RGBA)
 	return nil
 }
 
-// Rotate 图像旋转
+// Rotate 图像顺时针旋转，angle是选择度
 func Rotate(src image.Image, angle float64) image.Image {
 	srcBounds := src.Bounds()
 	srcWidth := srcBounds.Dx()
