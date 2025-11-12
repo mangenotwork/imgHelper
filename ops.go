@@ -1,17 +1,9 @@
 package imgHelper
 
 import (
-	"bytes"
-	"fmt"
 	drawx "golang.org/x/image/draw"
 	"image"
 	"image/draw"
-	"image/jpeg"
-	"image/png"
-	"io"
-	"log"
-	"net/http"
-	"os"
 )
 
 // Scale 使用双线性插值算法将源图片拉伸或压缩到目标大小
@@ -21,86 +13,13 @@ func Scale(src image.Image, targetWidth, targetHeight int) image.Image {
 	return dst
 }
 
-// OpenImgFromLocalFile 从本地文件读取图像
-func OpenImgFromLocalFile(imgPath string) (image.Image, error) {
-	imgFile, err := os.Open(imgPath)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = imgFile.Close()
-	}()
-	imgObj, err := png.Decode(imgFile)
-	if err != nil {
-		data, err := os.ReadFile(imgPath)
-		data = findSOI(data)
-		if data == nil {
-			fmt.Println("未找到 JPEG 起始标记")
-		}
-		imgObj, err = jpeg.Decode(bytes.NewReader(data))
-		if err != nil {
-			return nil, err
-		}
-	}
-	return imgObj, nil
-}
+// todo 缩放
+// draw.NearestNeighbor：最近邻插值，速度快，但可能会导致图像出现锯齿。
+// draw.ApproxBiLinear：近似双线性插值，速度比 draw.BiLinear 快，但质量稍低。
+// draw.CatmullRom：Catmull-Rom 插值，质量较高，但速度较慢。
 
-func findSOI(data []byte) []byte {
-	soi := []byte{0xFF, 0xD8}
-	index := bytes.Index(data, soi)
-	if index == -1 {
-		return nil
-	}
-	return data[index:]
-}
+// todo  Gray 灰度处理， 遍历图像的每个像素点并进行灰度化处理
 
-// OpenImgFromReader 从Reader读取图像
-func OpenImgFromReader(rd io.Reader) (image.Image, error) {
-	data, err := io.ReadAll(rd)
-	if err != nil {
-		return nil, err // 读取流失败（如网络中断、文件损坏）
-	}
-	imgObj, err := png.Decode(bytes.NewReader(data))
-	if err != nil {
-		data = findSOI(data)
-		if data == nil {
-			fmt.Println("未找到 JPEG 起始标记")
-		}
-		imgObj, err = jpeg.Decode(bytes.NewReader(data))
-		if err != nil {
-			return nil, err
-		}
-	}
-	return imgObj, nil
-}
+// todo Brightness 图像点的亮度调整
 
-// OpenImgFromBytes 从Bytes读取图像
-func OpenImgFromBytes(data []byte) (image.Image, error) {
-	imgObj, err := png.Decode(bytes.NewReader(data))
-	if err != nil {
-		data = findSOI(data)
-		if data == nil {
-			fmt.Println("未找到 JPEG 起始标记")
-		}
-		imgObj, err = jpeg.Decode(bytes.NewReader(data))
-		if err != nil {
-			return nil, err
-		}
-	}
-	return imgObj, nil
-}
-
-// OpenImgFromHttpGet http get请求下载url图像
-func OpenImgFromHttpGet(imgUrl string) (image.Image, error) {
-	resp, err := http.Get(imgUrl)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-	if resp.StatusCode != http.StatusOK {
-		log.Printf("[imgHelper Warn] http get url = %s resp status is %s", imgUrl, resp.Status)
-	}
-	return OpenImgFromReader(resp.Body)
-}
+//
