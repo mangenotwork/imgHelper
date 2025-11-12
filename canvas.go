@@ -15,8 +15,14 @@ import (
 
 // CanvasContext 画布上下文
 type CanvasContext struct {
+	// 存放画布的rgba
 	Dst *image.RGBA
-	Err error // todo 为了方便每个执行都能链式调用，所以这里设计接收多个错误， 在最终IO输出的时候抛出，
+
+	// 为了方便每个执行都能链式调用，所以这里设计用errors.Join接收多个错误
+	// 在最终IO输出的时候抛出
+	Err error
+
+	// todo 记录画布的图层
 }
 
 // NewCanvas 透明背景的画布
@@ -91,6 +97,23 @@ func NewImgCanvasFromRange(rg Range, resource image.Image) *CanvasContext {
 	return canvasContext
 }
 
+// CanvasFromLocalImg 指定本地一张图片作为画布的背景,画布的大小会使用图片的宽高
+func CanvasFromLocalImg(imgPath string) *CanvasContext {
+	canvasContext := &CanvasContext{}
+	resource, err := OpenImgFromLocalFile(imgPath)
+	if err != nil {
+		canvasContext.Err = errors.Join(canvasContext.Err, err)
+		return canvasContext
+	}
+	bounds := resource.Bounds()
+	canvasContext.Dst = image.NewRGBA(bounds)
+	draw.Draw(canvasContext.Dst, bounds, resource, bounds.Min, draw.Over)
+	return canvasContext
+}
+
+// Ext 执行传入绘制的方法并接收绘制产生的错误
+// 只要是实现了  fn func(ctx *CanvasContext) error 方法的图层都可以调用此方法
+// 返回画布上下文已支持链式调用
 func (ctx *CanvasContext) Ext(fn func(ctx *CanvasContext) error) *CanvasContext {
 	ctx.Err = errors.Join(ctx.Err, fn(ctx))
 	return ctx

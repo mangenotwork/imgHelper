@@ -3,6 +3,7 @@ package imgHelper
 import (
 	drawx "golang.org/x/image/draw"
 	"image"
+	"image/color"
 	"image/draw"
 )
 
@@ -11,6 +12,17 @@ func Scale(src image.Image, targetWidth, targetHeight int) image.Image {
 	dst := image.NewRGBA(image.Rect(0, 0, targetWidth, targetHeight))
 	drawx.ApproxBiLinear.Scale(dst, dst.Bounds(), src, src.Bounds(), draw.Over, nil)
 	return dst
+}
+
+// 双线性插值计算颜色
+func interpolateColor(c1, c2 color.Color, t float64) (uint8, uint8, uint8, uint8) {
+	r1, g1, b1, a1 := c1.RGBA()
+	r2, g2, b2, a2 := c2.RGBA()
+	r := uint8((1-t)*float64(r1>>8) + t*float64(r2>>8))
+	g := uint8((1-t)*float64(g1>>8) + t*float64(g2>>8))
+	b := uint8((1-t)*float64(b1>>8) + t*float64(b2>>8))
+	a := uint8((1-t)*float64(a1>>8) + t*float64(a2>>8))
+	return r, g, b, a
 }
 
 // todo 缩放
