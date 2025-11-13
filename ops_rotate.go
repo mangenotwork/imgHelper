@@ -98,9 +98,12 @@ func Rotate(src image.Image, angle float64) image.Image {
 				// 双线性插值计算颜色
 				r0, g0, b0, a0 := interpolateColor(srcColor00, srcColor10, u)
 				r1, g1, b1, a1 := interpolateColor(srcColor01, srcColor11, u)
-				r, g, b, a := interpolateColor(color.RGBA{r0, g0, b0, a0}, color.RGBA{r1, g1, b1, a1}, v)
+				r, g, b, a := interpolateColor(
+					color.RGBA{R: r0, G: g0, B: b0, A: a0},
+					color.RGBA{R: r1, G: g1, B: b1, A: a1},
+					v)
 
-				dst.Set(x, y, color.RGBA{r, g, b, a})
+				dst.Set(x, y, color.RGBA{R: r, G: g, B: b, A: a})
 			}
 		}
 	}

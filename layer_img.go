@@ -18,6 +18,23 @@ type ImgLayer struct {
 	Y1       int
 }
 
+func NewImgLayer(src image.Image, rg Range) *ImgLayer {
+	layer := &ImgLayer{
+		Resource: src,
+		X0:       rg.X0,
+		Y0:       rg.Y0,
+		X1:       rg.X1,
+		Y1:       rg.Y1,
+	}
+	if layer.X1 == 0 {
+		layer.X1 = rg.X0 + src.Bounds().Dx()
+	}
+	if layer.Y1 == 0 {
+		layer.Y1 = rg.Y0 + src.Bounds().Dy()
+	}
+	return layer
+}
+
 // ImgLayerFromLocalFile 从本地打开一张图片作为图层放在画布的指定范围
 func ImgLayerFromLocalFile(imgPath string, rg Range) (*ImgLayer, error) {
 	resource, err := OpenImgFromLocalFile(imgPath)
@@ -108,5 +125,26 @@ func (imgLayer *ImgLayer) Ext(fn func(ctx *CanvasContext) error) *ImgLayer {
 	}
 	nowImgLayerCtx.Err = errors.Join(nowImgLayerCtx.Err, fn(nowImgLayerCtx))
 	imgLayer.Resource = nowImgLayerCtx.Dst
+	return imgLayer
+}
+
+// Translation 将资源图像在图层上进行平移
+func (imgLayer *ImgLayer) Translation(dx, dy int) *ImgLayer {
+
+	bounds := imgLayer.Resource.Bounds()
+	dst := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
+	draw.Draw(dst, dst.Bounds(), &image.Uniform{C: image.Transparent}, image.Point{}, draw.Src)
+
+	for y := 0; y < bounds.Dy(); y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			newX := x + dx
+			newY := y + dy
+			if newX >= 0 && newX < bounds.Dx() && newY >= 0 && newY < bounds.Dy() {
+				dst.Set(newX, newY, imgLayer.Resource.At(x, y))
+			}
+		}
+	}
+
+	imgLayer.Resource = dst
 	return imgLayer
 }

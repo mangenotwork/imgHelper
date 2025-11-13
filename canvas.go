@@ -93,6 +93,7 @@ func NewImgCanvasFromRange(rg Range, resource image.Image) *CanvasContext {
 	dst := image.NewRGBA(dstBounds)
 	srcRect := image.Rect(rg.X0, rg.Y0, rg.X1, rg.Y1)
 	draw.Draw(dst, dstBounds, resource, srcRect.Min, draw.Src)
+	canvasContext.Dst = dst
 	return canvasContext
 }
 
@@ -161,7 +162,7 @@ func (ctx *CanvasContext) Addition(layer Layer) *CanvasContext {
 			newB := uint8((int(srcB8) + int(dstB8)) / 2)
 			newA := uint8((int(srcA8) + int(dstA8)) / 2)
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -222,7 +223,7 @@ func (ctx *CanvasContext) Subtraction(layer Layer, soft ...bool) *CanvasContext 
 				}
 			}
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -302,7 +303,7 @@ func (ctx *CanvasContext) Multiplication(layer Layer, normalize ...any) *CanvasC
 				newA = min(255, uint8(int(dstA8)*int(srcA8)))
 			}
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -311,33 +312,33 @@ func (ctx *CanvasContext) Multiplication(layer Layer, normalize ...any) *CanvasC
 // Division 将当前图层除法添加到画布上，也就是与当前画布做除法
 // 可以用于光照归一化，比值分析，去雾处理
 // 可选参数：
-//   - normalize: 是否归一化（默认true，结果映射到0-255范围）
+//   - normalize: 是否归一化（默认true，结果映射到 0~255 范围）
 //   - scale: 缩放因子（默认255，影响归一化强度）
 //   - zeroVal: 图层像素为0时的替代结果（默认255，避免除零错误）
 func (ctx *CanvasContext) Division(layer Layer, opts ...any) *CanvasContext {
-	src := layer.GetResource()    // 图层图像资源
-	srcBounds := src.Bounds()     // 图层像素范围
-	x0, y0, _, _ := layer.GetXY() // 图层在画布上的位置
-	dstBounds := ctx.Dst.Bounds() // 画布像素范围
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
 
-	normalizeFlag := true // 默认归一化
+	normalizeFlag := true
 	if len(opts) > 0 {
 		if flag, ok := opts[0].(bool); ok {
 			normalizeFlag = flag
 		}
 	}
 
-	scale := 255 // 默认缩放因子
+	scale := 255
 	if len(opts) > 1 {
 		if s, ok := opts[1].(int); ok && s > 0 {
 			scale = s
 		}
 	}
 
-	zeroVal := 255 // 除零替代值（默认最大亮度）
+	zeroVal := 255
 	if len(opts) > 2 {
 		if z, ok := opts[2].(int); ok {
-			zeroVal = clamp(z, 0, 255) // 限制在有效像素范围
+			zeroVal = clamp(z, 0, 255)
 		}
 	}
 
@@ -369,7 +370,7 @@ func (ctx *CanvasContext) Division(layer Layer, opts ...any) *CanvasContext {
 			newB := ctx.calcDiv(dstB8, srcB8, normalizeFlag, scale, zeroVal)
 			newA := ctx.calcDiv(dstA8, srcA8, normalizeFlag, scale, zeroVal)
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -430,7 +431,7 @@ func (ctx *CanvasContext) AND(layer Layer) *CanvasContext {
 			newB := srcB8 & dstB8
 			newA := srcA8 & dstA8
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -471,7 +472,7 @@ func (ctx *CanvasContext) OR(layer Layer) *CanvasContext {
 			newB := srcB8 | dstB8
 			newA := srcA8 | dstA8
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -512,7 +513,7 @@ func (ctx *CanvasContext) XOR(layer Layer) *CanvasContext {
 			newB := srcB8 ^ dstB8
 			newA := srcA8 ^ dstA8
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -547,7 +548,7 @@ func (ctx *CanvasContext) NOT(layer Layer) *CanvasContext {
 			newB := ^srcB8
 			newA := ^srcA8
 
-			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+			ctx.Dst.Set(tx, ty, color.RGBA{R: newR, G: newG, B: newB, A: newA})
 		}
 	}
 	return ctx
@@ -578,9 +579,8 @@ func (ctx *CanvasContext) SaveToFile(filePath string) error {
 func (ctx *CanvasContext) Print() {
 	for y := ctx.Dst.Bounds().Min.Y; y < ctx.Dst.Bounds().Max.Y; y++ {
 		for x := ctx.Dst.Bounds().Min.X; x < ctx.Dst.Bounds().Max.X; x++ {
-			// 获取像素点的颜色
-			color := ctx.Dst.At(x, y)
-			r, g, b, a := color.RGBA()
+			colorVal := ctx.Dst.At(x, y)
+			r, g, b, a := colorVal.RGBA()
 			fmt.Printf("Pixel at (%d, %d): R=%d, G=%d, B=%d, A=%d", x, y, r>>8, g>>8, b>>8, a>>8)
 		}
 	}

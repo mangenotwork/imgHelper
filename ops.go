@@ -3,6 +3,7 @@ package imgHelper
 import (
 	"image"
 	"image/color"
+	"math"
 )
 
 // Gray 灰度处理
@@ -13,8 +14,8 @@ func Gray(src image.Image) image.Image {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r, g, b, a := src.At(x, y).RGBA()
 			// 计算灰度值
-			gray := uint8((float64(r>>8)*0.299 + float64(g>>8)*0.587 + float64(b>>8)*0.114))
-			grayImg.Set(x, y, color.RGBA{gray, gray, gray, uint8(a >> 8)})
+			gray := uint8(math.Round(float64(r>>8)*0.299 + float64(g>>8)*0.587 + float64(b>>8)*0.114))
+			grayImg.Set(x, y, color.RGBA{R: gray, G: gray, B: gray, A: uint8(a >> 8)})
 		}
 	}
 	return grayImg
@@ -53,7 +54,7 @@ func Brightness(src image.Image, brightnessVal int) image.Image {
 			} else if newB > 255 {
 				newB = 255
 			}
-			newImg.Set(x, y, color.RGBA{uint8(newR), uint8(newG), uint8(newB), uint8(a >> 8)})
+			newImg.Set(x, y, color.RGBA{R: uint8(newR), G: uint8(newG), B: uint8(newB), A: uint8(a >> 8)})
 		}
 	}
 	return newImg
