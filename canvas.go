@@ -167,17 +167,234 @@ func (ctx *CanvasContext) Addition(layer Layer) *CanvasContext {
 	return ctx
 }
 
-// 将当前图层减法添加到画布上，也就是与当前画布做减法
+// Subtraction 将当前图层减法添加到画布上，也就是与当前画布做减法
 // 可以用于检测图像中的变化或突出差异
-//subtraction
+// 可选参数soft true:柔和减法效果
+func (ctx *CanvasContext) Subtraction(layer Layer, soft ...bool) *CanvasContext {
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
 
-// 将当前图层乘法添加到画布上，也就是与当前画布做乘法
+	softFlag := false
+	if len(soft) > 0 {
+		softFlag = soft[0]
+	}
+
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
+
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
+
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			dstR, dstG, dstB, dstA := ctx.Dst.At(tx, ty).RGBA()
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+			dstR8 := uint8(dstR >> 8)
+			dstG8 := uint8(dstG >> 8)
+			dstB8 := uint8(dstB >> 8)
+			dstA8 := uint8(dstA >> 8)
+
+			var newR, newG, newB, newA uint8
+
+			if softFlag {
+				// 缩放差值：用 (dst - src) 的一半，不足则取0（保留一定亮度）
+				newR = max(0, (dstR8-srcR8)/2+128) // 加128偏移，避免过暗
+				newG = max(0, (dstG8-srcG8)/2+128)
+				newB = max(0, (dstB8-srcB8)/2+128)
+				newA = max(0, (dstA8-srcA8)/2+128)
+
+			} else {
+				// 取绝对值：保留差异（无论谁减谁）
+				newR = abs(dstR8 - srcR8)
+				newG = abs(dstG8 - srcG8)
+				newB = abs(dstB8 - srcB8)
+				newA = abs(dstA8 - srcA8)
+				if newA == 0 { // 保留一定亮度
+					newA = 128
+				}
+			}
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
+
+// Multiplication 将当前图层乘法添加到画布上，也就是与当前画布做乘法
 // 可以用于掩膜操作，图像合成，亮度调整
-//multiplication
+// 可选参数：
+//   - normalize: 是否归一化（默认true）
+//   - scale: 缩放因子（默认255，值越小保留的小值越多，如128会增强低亮度
+func (ctx *CanvasContext) Multiplication(layer Layer, normalize ...any) *CanvasContext {
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
 
-// 将当前图层除法添加到画布上，也就是与当前画布做除法
+	normalizeFlag := true
+	if len(normalize) > 0 {
+		if flag, ok := normalize[0].(bool); ok {
+			normalizeFlag = flag
+		}
+	}
+
+	scale := 255
+	if len(normalize) > 1 {
+		if s, ok := normalize[1].(int); ok && s > 0 {
+			scale = s
+		}
+	}
+
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
+
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			dstR, dstG, dstB, dstA := ctx.Dst.At(tx, ty).RGBA()
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+			dstR8 := uint8(dstR >> 8)
+			dstG8 := uint8(dstG >> 8)
+			dstB8 := uint8(dstB >> 8)
+			dstA8 := uint8(dstA >> 8)
+
+			var newR, newG, newB, newA uint8
+			if normalizeFlag {
+				// 四舍五入（+scale/2 再整除），减少小值被截断为0
+				newR = uint8((int(dstR8)*int(srcR8) + scale/2) / scale)
+				newG = uint8((int(dstG8)*int(srcG8) + scale/2) / scale)
+				newB = uint8((int(dstB8)*int(srcB8) + scale/2) / scale)
+				newA = uint8((int(dstA8)*int(srcA8) + scale/2) / scale)
+
+				// 极暗区域（接近0）强制保留一点亮度，避免完全消失
+				if newR < 5 {
+					newR = min(5, newR+1) // 最低亮度1-5
+				}
+				if newG < 5 {
+					newG = min(5, newG+1)
+				}
+				if newB < 5 {
+					newB = min(5, newB+1)
+				}
+				if newA < 5 {
+					newA = min(5, newA+1)
+				}
+			} else {
+				// 截断模式：保留原逻辑，但也做低亮度保护
+				newR = min(255, uint8(int(dstR8)*int(srcR8)))
+				newG = min(255, uint8(int(dstG8)*int(srcG8)))
+				newB = min(255, uint8(int(dstB8)*int(srcB8)))
+				newA = min(255, uint8(int(dstA8)*int(srcA8)))
+			}
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
+
+// Division 将当前图层除法添加到画布上，也就是与当前画布做除法
 // 可以用于光照归一化，比值分析，去雾处理
-//division
+// 可选参数：
+//   - normalize: 是否归一化（默认true，结果映射到0-255范围）
+//   - scale: 缩放因子（默认255，影响归一化强度）
+//   - zeroVal: 图层像素为0时的替代结果（默认255，避免除零错误）
+func (ctx *CanvasContext) Division(layer Layer, opts ...any) *CanvasContext {
+	src := layer.GetResource()    // 图层图像资源
+	srcBounds := src.Bounds()     // 图层像素范围
+	x0, y0, _, _ := layer.GetXY() // 图层在画布上的位置
+	dstBounds := ctx.Dst.Bounds() // 画布像素范围
+
+	normalizeFlag := true // 默认归一化
+	if len(opts) > 0 {
+		if flag, ok := opts[0].(bool); ok {
+			normalizeFlag = flag
+		}
+	}
+
+	scale := 255 // 默认缩放因子
+	if len(opts) > 1 {
+		if s, ok := opts[1].(int); ok && s > 0 {
+			scale = s
+		}
+	}
+
+	zeroVal := 255 // 除零替代值（默认最大亮度）
+	if len(opts) > 2 {
+		if z, ok := opts[2].(int); ok {
+			zeroVal = clamp(z, 0, 255) // 限制在有效像素范围
+		}
+	}
+
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
+
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+
+			// 越界检查
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
+
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			dstR, dstG, dstB, dstA := ctx.Dst.At(tx, ty).RGBA()
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+			dstR8 := uint8(dstR >> 8)
+			dstG8 := uint8(dstG >> 8)
+			dstB8 := uint8(dstB >> 8)
+			dstA8 := uint8(dstA >> 8)
+
+			newR := ctx.calcDiv(dstR8, srcR8, normalizeFlag, scale, zeroVal)
+			newG := ctx.calcDiv(dstG8, srcG8, normalizeFlag, scale, zeroVal)
+			newB := ctx.calcDiv(dstB8, srcB8, normalizeFlag, scale, zeroVal)
+			newA := ctx.calcDiv(dstA8, srcA8, normalizeFlag, scale, zeroVal)
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
+
+func (ctx *CanvasContext) calcDiv(dst, src uint8, normalize bool, scale, zeroVal int) uint8 {
+	// 处理除零：图层像素为0时返回替代值
+	if src == 0 {
+		return uint8(zeroVal)
+	}
+
+	dstInt := int(dst)
+	srcInt := int(src)
+
+	var res int
+	if normalize {
+		// 归一化模式：(dst * scale) / src（四舍五入），映射到0-255
+		res = (dstInt*scale + srcInt/2) / srcInt // +srcInt/2实现四舍五入
+	} else {
+		// 非归一化模式：直接除法（dst / src），结果可能很小
+		res = dstInt / srcInt
+	}
+
+	return uint8(clamp(res, 0, 255))
+}
 
 // 将当前图层与画布进行逻辑运算 - 与（AND）
 //AND
@@ -210,4 +427,16 @@ func (ctx *CanvasContext) SaveToFile(filePath string) error {
 		return err
 	}
 	return nil
+}
+
+// Print 在终端打印当前画布每个像素点的颜色值
+func (ctx *CanvasContext) Print() {
+	for y := ctx.Dst.Bounds().Min.Y; y < ctx.Dst.Bounds().Max.Y; y++ {
+		for x := ctx.Dst.Bounds().Min.X; x < ctx.Dst.Bounds().Max.X; x++ {
+			// 获取像素点的颜色
+			color := ctx.Dst.At(x, y)
+			r, g, b, a := color.RGBA()
+			fmt.Printf("Pixel at (%d, %d): R=%d, G=%d, B=%d, A=%d", x, y, r>>8, g>>8, b>>8, a>>8)
+		}
+	}
 }

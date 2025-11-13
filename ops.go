@@ -1,22 +1,68 @@
 package imgHelper
 
 import (
+	"image"
 	"image/color"
 )
 
-// 双线性插值计算颜色
-func interpolateColor(c1, c2 color.Color, t float64) (uint8, uint8, uint8, uint8) {
-	r1, g1, b1, a1 := c1.RGBA()
-	r2, g2, b2, a2 := c2.RGBA()
-	r := uint8((1-t)*float64(r1>>8) + t*float64(r2>>8))
-	g := uint8((1-t)*float64(g1>>8) + t*float64(g2>>8))
-	b := uint8((1-t)*float64(b1>>8) + t*float64(b2>>8))
-	a := uint8((1-t)*float64(a1>>8) + t*float64(a2>>8))
-	return r, g, b, a
+// Gray 灰度处理
+func Gray(src image.Image) image.Image {
+	bounds := src.Bounds()
+	grayImg := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := src.At(x, y).RGBA()
+			// 计算灰度值
+			gray := uint8((float64(r>>8)*0.299 + float64(g>>8)*0.587 + float64(b>>8)*0.114))
+			grayImg.Set(x, y, color.RGBA{gray, gray, gray, uint8(a >> 8)})
+		}
+	}
+	return grayImg
 }
 
-// todo  Gray 灰度处理， 遍历图像的每个像素点并进行灰度化处理
+// OpsGray 灰度处理操作
+func OpsGray() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Gray(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
 
-// todo Brightness 图像点的亮度调整
+// Brightness 图像点的亮度调整
+func Brightness(src image.Image, brightnessVal int) image.Image {
+	bounds := src.Bounds()
+	newImg := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := src.At(x, y).RGBA()
+			newR := int(r>>8) + brightnessVal
+			newG := int(g>>8) + brightnessVal
+			newB := int(b>>8) + brightnessVal
+			if newR < 0 {
+				newR = 0
+			} else if newR > 255 {
+				newR = 255
+			}
+			if newG < 0 {
+				newG = 0
+			} else if newG > 255 {
+				newG = 255
+			}
+			if newB < 0 {
+				newB = 0
+			} else if newB > 255 {
+				newB = 255
+			}
+			newImg.Set(x, y, color.RGBA{uint8(newR), uint8(newG), uint8(newB), uint8(a >> 8)})
+		}
+	}
+	return newImg
+}
 
-//
+// OpsBrightness 图像点的亮度调整操作
+func OpsBrightness(brightnessVal int) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Brightness(ctx.Dst, brightnessVal).(*image.RGBA)
+		return nil
+	}
+}
