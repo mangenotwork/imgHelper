@@ -130,8 +130,6 @@ require golang.org/x/image v0.32.0
 
 #### todo 
 
-- 图层逻辑运算
-- 打印当前画布的rgba
 - 记录画布的图层,可以打印当前画布的图层
 
 ## 支持

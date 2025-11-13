@@ -396,17 +396,162 @@ func (ctx *CanvasContext) calcDiv(dst, src uint8, normalize bool, scale, zeroVal
 	return uint8(clamp(res, 0, 255))
 }
 
-// 将当前图层与画布进行逻辑运算 - 与（AND）
-//AND
+// AND 将当前图层与画布进行逻辑运算 - 与（AND）
+func (ctx *CanvasContext) AND(layer Layer) *CanvasContext {
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
 
-// 将当前图层与画布进行逻辑运算 - 或（OR）
-//OR
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
 
-// 将当前图层与画布进行逻辑运算 - 异或（XOR）
-//XOR
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
 
-// 将当前图层与画布进行逻辑运算 - 非（NOT）
-//NOT
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			dstR, dstG, dstB, dstA := ctx.Dst.At(tx, ty).RGBA()
+
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+			dstR8 := uint8(dstR >> 8)
+			dstG8 := uint8(dstG >> 8)
+			dstB8 := uint8(dstB >> 8)
+			dstA8 := uint8(dstA >> 8)
+
+			newR := srcR8 & dstR8
+			newG := srcG8 & dstG8
+			newB := srcB8 & dstB8
+			newA := srcA8 & dstA8
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
+
+// OR 将当前图层与画布进行逻辑运算 - 或（OR）
+func (ctx *CanvasContext) OR(layer Layer) *CanvasContext {
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
+
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
+
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
+
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			dstR, dstG, dstB, dstA := ctx.Dst.At(tx, ty).RGBA()
+
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+			dstR8 := uint8(dstR >> 8)
+			dstG8 := uint8(dstG >> 8)
+			dstB8 := uint8(dstB >> 8)
+			dstA8 := uint8(dstA >> 8)
+
+			// 按位或运算：对应位有一个为1则结果为1
+			newR := srcR8 | dstR8
+			newG := srcG8 | dstG8
+			newB := srcB8 | dstB8
+			newA := srcA8 | dstA8
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
+
+// XOR 将当前图层与画布进行逻辑运算 - 异或（XOR）
+func (ctx *CanvasContext) XOR(layer Layer) *CanvasContext {
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
+
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
+
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
+
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			dstR, dstG, dstB, dstA := ctx.Dst.At(tx, ty).RGBA()
+
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+			dstR8 := uint8(dstR >> 8)
+			dstG8 := uint8(dstG >> 8)
+			dstB8 := uint8(dstB >> 8)
+			dstA8 := uint8(dstA >> 8)
+
+			// 按位异或运算：对应位不同则为1，相同则为0
+			newR := srcR8 ^ dstR8
+			newG := srcG8 ^ dstG8
+			newB := srcB8 ^ dstB8
+			newA := srcA8 ^ dstA8
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
+
+// NOT 将当前图层与画布进行逻辑运算 - 非（NOT）
+func (ctx *CanvasContext) NOT(layer Layer) *CanvasContext {
+	src := layer.GetResource()
+	srcBounds := src.Bounds()
+	x0, y0, _, _ := layer.GetXY()
+	dstBounds := ctx.Dst.Bounds()
+
+	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
+		for x := srcBounds.Min.X; x < srcBounds.Max.X; x++ {
+			tx := x0 + (x - srcBounds.Min.X)
+			ty := y0 + (y - srcBounds.Min.Y)
+
+			if tx < dstBounds.Min.X || tx >= dstBounds.Max.X ||
+				ty < dstBounds.Min.Y || ty >= dstBounds.Max.Y {
+				continue
+			}
+
+			srcR, srcG, srcB, srcA := src.At(x, y).RGBA()
+			srcR8 := uint8(srcR >> 8)
+			srcG8 := uint8(srcG >> 8)
+			srcB8 := uint8(srcB >> 8)
+			srcA8 := uint8(srcA >> 8)
+
+			// 对每个通道执行按位非运算（0变1，1变0）
+			newR := ^srcR8 // 等价于 0xff ^ srcR8 或 255 - srcR8
+			newG := ^srcG8
+			newB := ^srcB8
+			newA := ^srcA8
+
+			ctx.Dst.Set(tx, ty, color.RGBA{newR, newG, newB, newA})
+		}
+	}
+	return ctx
+}
 
 // SaveToFile 保存在本地文件
 func (ctx *CanvasContext) SaveToFile(filePath string) error {
