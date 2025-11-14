@@ -17,8 +17,8 @@ func Crop(src image.Image, x0, y0, x1, y1 int) image.Image {
 }
 
 // OpsCrop 裁剪操作
-// todo 三角形，多边形的锯齿太严重了
-// todo 需要增加曲线多边形裁剪
+// todo [优化]三角形，多边形的锯齿太严重了
+// todo 需要增加曲边多边形裁剪
 func OpsCrop(rg RangeValue) func(ctx *CanvasContext) error {
 	return func(ctx *CanvasContext) error {
 
@@ -26,12 +26,15 @@ func OpsCrop(rg RangeValue) func(ctx *CanvasContext) error {
 		case RangeRectType:
 			rgObj := rg.(Range)
 			ctx.Dst = Crop(ctx.Dst, rgObj.X0, rgObj.Y0, rgObj.X1, rgObj.Y1).(*image.RGBA)
+
 		case RangeCircleType:
 			rgObj := rg.(RangeCircle)
 			ctx.Dst = CropCircle(ctx.Dst, rgObj.Cx, rgObj.Cy, rgObj.R).(*image.RGBA)
+
 		case RangeTriangleType:
 			rgObj := rg.(RangeTriangle)
 			ctx.Dst = CropTriangle(ctx.Dst, rgObj.X0, rgObj.Y0, rgObj.X1, rgObj.Y1, rgObj.X2, rgObj.Y2).(*image.RGBA)
+
 		case RangePolygonType:
 			rgObj := rg.(RangePolygon)
 			points := make([]int, 0)
@@ -42,6 +45,7 @@ func OpsCrop(rg RangeValue) func(ctx *CanvasContext) error {
 			dst, err := CropPolygon(ctx.Dst, points...)
 			ctx.Dst = dst.(*image.RGBA)
 			ctx.Err = errors.Join(ctx.Err, err)
+
 		}
 
 		return nil

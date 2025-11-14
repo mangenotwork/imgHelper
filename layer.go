@@ -19,6 +19,14 @@ const (
 	RangeCircleType   RangeType = "circle"
 	RangeTriangleType RangeType = "triangle"
 	RangePolygonType  RangeType = "polygon"
+	// todo 曲边多边形（Curvilinear Polygon）
+	// 核心特征
+	//边界组成：由至少 3 个曲线段首尾相连形成的闭合回路，区别于普通多边形的直边
+	//曲线类型：边可以是任意曲线，包括：
+	//圆弧（如鲁洛三角形）
+	//椭圆弧
+	//贝塞尔曲线段
+	//自由曲线（通过拟合离散点形成）
 )
 
 type RangeValue interface {
@@ -35,6 +43,10 @@ type Range struct {
 
 func (Range) Type() RangeType {
 	return RangeRectType
+}
+
+func (rg Range) Value() (int, int, int, int) {
+	return rg.X0, rg.Y0, rg.X1, rg.Y1
 }
 
 // RangeCircle 圆形范围 用于图层绘制在画布的指定位置

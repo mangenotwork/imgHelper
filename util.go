@@ -2,7 +2,7 @@ package imgHelper
 
 import "image/color"
 
-// SignedNumeric 定义类型约束：支持所有有符号整数和浮点数（这些类型有正负，需要计算绝对值）
+// SignedNumeric 定义类型约束所有数值
 type SignedNumeric interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |

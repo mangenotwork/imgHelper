@@ -36,7 +36,12 @@ func main() {
 	//case25()
 	//case26()
 	//case27()
-	case28()
+	//case28()
+	//case31()
+	//case32()
+	//case33()
+	//case34()
+	case35()
 }
 
 // 创建一个画布
@@ -508,5 +513,63 @@ func case30() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	imgLayer.Ext(imgHelper.OpsScaleCatmullRom(100, 100)).Save("./case30.png")
+	_ = imgLayer.Ext(imgHelper.OpsScaleCatmullRom(100, 100)).Save("./case30.png")
+}
+
+// OpsTransposition 图像转置操作
+func case31() {
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = imgLayer.Ext(imgHelper.OpsTransposition()).Save("./case31.png")
+}
+
+// OpsMirrorHorizontal 镜像
+func case32() {
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = imgLayer.Ext(imgHelper.OpsMirrorHorizontal()).Save("./case32.png")
+}
+
+// OpsMirrorVertical  镜像
+func case33() {
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = imgLayer.Ext(imgHelper.OpsMirrorVertical()).Save("./case33.png")
+}
+
+// OpsBinaryImg 二值图操作
+func case34() {
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = imgLayer.Ext(imgHelper.OpsBinaryImg()).Save("./case34.png")
+}
+
+// OpsMosaic 马赛克操作
+func case35() {
+	imgLayer, err := imgHelper.ImgLayerFromLocalFile("./case6.png", imgHelper.Range{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	//_ = imgLayer.Ext(imgHelper.OpsMosaic(imgHelper.Range{100, 100, 300, 300}, 20)).Save("./case35.png")
+	//_ = imgLayer.Ext(imgHelper.OpsMosaic(imgHelper.RangeCircle{100, 100, 50}, 20)).Save("./case35_2.png")
+	//_ = imgLayer.Ext(imgHelper.OpsMosaic(imgHelper.RangeTriangle{90, 50, 50, 200, 150, 200}, 20)).Save("./case35_3.png")
+	rgPolygon := imgHelper.RangePolygon{
+		Points: []imgHelper.Point{
+			{X: 0, Y: 0},
+			{X: 100, Y: 60},
+			{X: 120, Y: 90},
+			{X: 80, Y: 110},
+			{X: 40, Y: 150},
+			{X: 20, Y: 60},
+		},
+	}
+	_ = imgLayer.Ext(imgHelper.OpsMosaic(rgPolygon, 20)).Save("./case35_4.png")
 }
