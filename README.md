@@ -5,7 +5,7 @@
 设计图像操作方法ops，画布和图层都能使用；
 包含了众多图像的处理算法，绘制则可进行配置方式进行绘制详细用法见Readme......
 
-### 设计
+## 设计
 
 - canvas ： 画布, 图层绘制到画布上，支持各种绘制方法
 - layer ：图层，进行图像处理和绘制最小单元,含有图像资源，文本，几何绘制，蒙层，操作画布
@@ -13,9 +13,11 @@
 - func : 各种图像处理方法函数，输入 image.Image 处理后 输出 image.Image
 
 
-### 使用文档
+## 使用文档
 
 [打开文档](https://github.com/mangenotwork/imgHelper/blob/main/doc/doc.md "点击跳转到文档")
+
+[访问示例](https://github.com/mangenotwork/imgHelper/blob/main/examples/main.go "点击跳转到示例")
 
 ### 先来一个例子
 
@@ -137,26 +139,18 @@ require golang.org/x/image v0.32.0
 - 记录画布的图层,可以打印当前画布的图层
 
 ## 支持
-
-#### 图像处理
 - 灰度 Gray
-- 缩放 Scale  
-- 
-
-#### 图像绘制
-
-#### 图层运算
-- 加法
-- 减法
-- 乘法
-- 除法
-
-#### 图像分割
-
-#### 图像压缩
-
-#### 人像相关
-
+- 二值图 BinaryImg
+- 图像点的亮度调整 Brightness
+- 图像转置 Transposition
+- 图像镜像 Mirror
+- 图像浮雕 Relief
+- 裁剪 Crop
+- 马赛克 Mosaic
+- 旋转 Rotate
+- 伸缩 Scale
+- 图像颜色反转 ColorReversal
+- 图像腐蚀 Corrosion
 
 
 
