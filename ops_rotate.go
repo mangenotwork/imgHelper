@@ -37,7 +37,7 @@ func (layer *opsRotate) Draw(ctx *CanvasContext) error {
 	return nil
 }
 
-// Rotate 图像顺时针旋转，angle是选择度
+// Rotate 图像顺时针旋转，angle是旋转度
 func Rotate(src image.Image, angle float64) image.Image {
 	srcBounds := src.Bounds()
 	srcWidth := srcBounds.Dx()

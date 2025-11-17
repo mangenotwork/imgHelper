@@ -71,6 +71,7 @@ func ImgLayerFromFromReader(rd io.Reader, rg Range) (*ImgLayer, error) {
 	}, nil
 }
 
+// Draw 执行将当前图像图层绘制到画布上
 func (imgLayer *ImgLayer) Draw(ctx *CanvasContext) error {
 	if imgLayer.X1 == 0 {
 		imgLayer.X1 = imgLayer.X0 + imgLayer.Resource.Bounds().Dx()
@@ -88,14 +89,17 @@ func (imgLayer *ImgLayer) Draw(ctx *CanvasContext) error {
 	return nil
 }
 
+// GetResource 获取当前图像图层的图像资源
 func (imgLayer *ImgLayer) GetResource() image.Image {
 	return imgLayer.Resource
 }
 
+// GetXY 获取当前图像图层的矩形范围
 func (imgLayer *ImgLayer) GetXY() (int, int, int, int) {
 	return imgLayer.X0, imgLayer.Y0, imgLayer.X1, imgLayer.Y1
 }
 
+// Scale 将当前图像图层进行缩放
 func (imgLayer *ImgLayer) Scale(targetWidth, targetHeight int) error {
 	imgLayer.Resource = Scale(imgLayer.Resource, targetWidth, targetHeight)
 	imgLayer.X1 = imgLayer.X0 + imgLayer.Resource.Bounds().Dx()
@@ -103,6 +107,7 @@ func (imgLayer *ImgLayer) Scale(targetWidth, targetHeight int) error {
 	return nil
 }
 
+// Save 将当前图像图层保存到文件
 func (imgLayer *ImgLayer) Save(filePath string) error {
 	outputFile, err := os.Create(filePath)
 	if err != nil {
@@ -116,6 +121,8 @@ func (imgLayer *ImgLayer) Save(filePath string) error {
 	return png.Encode(outputFile, imgLayer.Resource)
 }
 
+// Ext 执行传入绘制的方法(操作ops)并接收绘制产生的错误
+// 只要是实现了  fn func(ctx *CanvasContext) error 方法就可以调用此方法
 func (imgLayer *ImgLayer) Ext(fn func(ctx *CanvasContext) error) *ImgLayer {
 	bounds := imgLayer.Resource.Bounds()
 	rgbaImg := image.NewRGBA(bounds)
@@ -130,11 +137,9 @@ func (imgLayer *ImgLayer) Ext(fn func(ctx *CanvasContext) error) *ImgLayer {
 
 // Translation 将资源图像在图层上进行平移
 func (imgLayer *ImgLayer) Translation(dx, dy int) *ImgLayer {
-
 	bounds := imgLayer.Resource.Bounds()
 	dst := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
 	draw.Draw(dst, dst.Bounds(), &image.Uniform{C: image.Transparent}, image.Point{}, draw.Src)
-
 	for y := 0; y < bounds.Dy(); y++ {
 		for x := 0; x < bounds.Dx(); x++ {
 			newX := x + dx
@@ -144,7 +149,6 @@ func (imgLayer *ImgLayer) Translation(dx, dy int) *ImgLayer {
 			}
 		}
 	}
-
 	imgLayer.Resource = dst
 	return imgLayer
 }

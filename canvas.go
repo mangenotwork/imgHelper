@@ -111,8 +111,12 @@ func CanvasFromLocalImg(imgPath string) *CanvasContext {
 	return canvasContext
 }
 
+func (ctx *CanvasContext) GetErr() error {
+	return ctx.Err
+}
+
 // Ext 执行传入绘制的方法(操作ops)并接收绘制产生的错误
-// 只要是实现了  fn func(ctx *CanvasContext) error 方法的图层都可以调用此方法
+// 只要是实现了  fn func(ctx *CanvasContext) error 方法就可以调用此方法
 // 返回画布上下文已支持链式调用
 func (ctx *CanvasContext) Ext(fn func(ctx *CanvasContext) error) *CanvasContext {
 	ctx.Err = errors.Join(ctx.Err, fn(ctx))

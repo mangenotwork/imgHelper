@@ -171,3 +171,124 @@ func OpsMirrorVertical() func(ctx *CanvasContext) error {
 		return nil
 	}
 }
+
+// Relief 图像浮雕
+func Relief(src image.Image) image.Image {
+	bounds := src.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	dst := image.NewRGBA(bounds)
+	for y := 0; y < height-1; y++ {
+		for x := 0; x < width-1; x++ {
+			currentPixel := src.At(x, y)
+			nextPixel := src.At(x+1, y+1)
+			r1, g1, b1, _ := currentPixel.RGBA()
+			r2, g2, b2, _ := nextPixel.RGBA()
+			r := int(r1/256) - int(r2/256) + 128
+			g := int(g1/256) - int(g2/256) + 128
+			b := int(b1/256) - int(b2/256) + 128
+			if r < 0 {
+				r = 0
+			} else if r > 255 {
+				r = 255
+			}
+			if g < 0 {
+				g = 0
+			} else if g > 255 {
+				g = 255
+			}
+			if b < 0 {
+				b = 0
+			} else if b > 255 {
+				b = 255
+			}
+			dst.Set(x, y, color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 255})
+		}
+	}
+	return dst
+}
+
+// OpsRelief 浮雕操作
+func OpsRelief() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Relief(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
+
+// ColorReversal 图像颜色反转
+func ColorReversal(src image.Image) image.Image {
+	bounds := src.Bounds()
+	dst := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := src.At(x, y).RGBA()
+			r = r / 256
+			g = g / 256
+			b = b / 256
+			a = a / 256
+			// 反转颜色
+			r = 255 - r
+			g = 255 - g
+			b = 255 - b
+			dst.Set(x, y, color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)})
+		}
+	}
+	return dst
+}
+
+// OpsColorReversal 图像颜色反转操作
+func OpsColorReversal() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = ColorReversal(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
+
+// Corrosion 图像腐蚀
+func Corrosion(src image.Image) image.Image {
+	bounds := src.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	dst := image.NewRGBA(bounds)
+	structuringElement := [3][3]bool{
+		{true, true, true},
+		{true, true, true},
+		{true, true, true},
+	}
+	for y := 1; y < height-1; y++ {
+		for x := 1; x < width-1; x++ {
+			allForeground := true
+			for ky := 0; ky < 3; ky++ {
+				for kx := 0; kx < 3; kx++ {
+					if structuringElement[ky][kx] {
+						nx := x + kx - 1
+						ny := y + ky - 1
+						r, _, _, _ := src.At(nx, ny).RGBA()
+						if r/256 < 128 {
+							allForeground = false
+							break
+						}
+					}
+				}
+				if !allForeground {
+					break
+				}
+			}
+			if allForeground {
+				dst.Set(x, y, color.RGBA{R: 255, G: 255, B: 255, A: 255})
+			} else {
+				dst.Set(x, y, color.RGBA{R: 0, G: 0, B: 0, A: 255})
+			}
+		}
+	}
+	return dst
+}
+
+// OpsCorrosion 图像腐蚀操作
+func OpsCorrosion() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Corrosion(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}

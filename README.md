@@ -135,7 +135,9 @@ require golang.org/x/image v0.32.0
 ## 支持
 
 #### 图像处理
-- 缩放 Scale [v]
+- 灰度 Gray
+- 缩放 Scale  
+- 
 
 #### 图像绘制
 

@@ -41,7 +41,10 @@ func main() {
 	//case32()
 	//case33()
 	//case34()
-	case35()
+	//case35()
+	//case36()
+	//case37()
+	case38()
 }
 
 // 创建一个画布
@@ -572,4 +575,22 @@ func case35() {
 		},
 	}
 	_ = imgLayer.Ext(imgHelper.OpsMosaic(rgPolygon, 20)).Save("./case35_4.png")
+}
+
+// OpsRelief 浮雕操作
+func case36() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsRelief()).Save("./case36.png")
+}
+
+// OpsColorReversal 图像颜色反转操作
+func case37() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsColorReversal()).Save("./case37.png")
+}
+
+// OpsCorrosion 图像腐蚀操作
+func case38() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsCorrosion()).Save("./case38.png")
 }
