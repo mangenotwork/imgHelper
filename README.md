@@ -13,6 +13,10 @@
 - func : 各种图像处理方法函数，输入 image.Image 处理后 输出 image.Image
 
 
+### 使用文档
+
+[打开文档](https://github.com/mangenotwork/imgHelper/blob/main/doc/doc.md "点击跳转到文档")
+
 ### 先来一个例子
 
 打开一张图片作为画布，然后打开第二张图为一个图层缩放到100*200，旋转66度，绘制到画布的x0,y0=100,100的位置，然后画布整体旋转90度
