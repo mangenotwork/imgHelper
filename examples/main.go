@@ -48,7 +48,13 @@ func main() {
 	//case39()
 	//case40()
 	//case41()
-	case42()
+	//case42()
+	//case43()
+	//case44()
+	//case45()
+	//case46()
+	//case47()
+	case48()
 }
 
 // 创建一个画布
@@ -621,4 +627,40 @@ func case41() {
 func case42() {
 	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
 	_ = imgLayer.Ext(imgHelper.OpsHue(44.4)).Save("./case42.png")
+}
+
+// OpsSaturation 图像调整饱和度操作
+func case43() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsSaturation(2.2)).Save("./case43.png")
+}
+
+// OpsAdjustColorBalance 调整色彩平衡操作
+func case44() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAdjustColorBalance(10, 20, 30)).Save("./case44.png")
+}
+
+// OpsAdjustContrast 调整对比度操作
+func case45() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAdjustContrast(44.4)).Save("./case45.png")
+}
+
+// OpsAdjustSharpness 调整锐度操作
+func case46() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAdjustSharpness(44.4)).Save("./case46.png")
+}
+
+// OpsAdjustColorScale 调整色阶操作
+func case47() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAdjustColorScale(40, 220, 1.8)).Save("./case47.png")
+}
+
+// OpsAdjustExposure 调整曝光度操作
+func case48() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAdjustExposure(2)).Save("./case48.png")
 }

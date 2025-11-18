@@ -183,5 +183,40 @@ todo...
 - OpsHue(hueAdjustment float64) // 画布和图层体系使用
 ```
 
-- 
+- 图像调整饱和度 Saturation
+```
+- Saturation(src image.Image, saturationAdjustment float64) image.Image // saturationAdjustment: 调整饱和度的值
+- OpsSaturation(saturationAdjustment float64) // 画布和图层体系使用
+```
 
+- 调整色彩平衡 ColorBalance
+```
+- AdjustColorBalance(src image.Image, rAdjustment, gAdjustment, bAdjustment int) image.Image 
+- OpsAdjustColorBalance(rAdjustment, gAdjustment, bAdjustment int) // 画布和图层体系使用
+```
+
+- 调整对比度 Contrast
+```
+- AdjustContrast(src image.Image, contrast float64) image.Image // contrast : 对比度调整值
+- OpsAdjustContrast(contrast float64) // 画布和图层体系使用
+```
+
+- 调整锐度 Sharpness 
+```
+- AdjustSharpness(src image.Image, sharpness float64) image.Image // sharpness:锐度调整值
+- OpsAdjustSharpness(sharpness float64) // 画布和图层体系使用
+```
+
+- 调整色阶 ColorScale 
+```
+- AdjustColorScale(src image.Image, blackPoint, whitePoint, gamma float64) image.Image // - blackPoint : 黑点  - whitePoint : 白点 - gamma : 伽马校正
+- OpsAdjustColorScale(blackPoint, whitePoint, gamma float64) // 画布和图层体系使用
+```
+
+- 调整曝光度 Exposure 
+```
+- AdjustExposure(src image.Image, exposure float64) image.Image
+- OpsAdjustExposure(exposure float64) // 画布和图层体系使用
+```
+
+-

@@ -67,45 +67,6 @@ func OpsBinaryImg(thresholdVal ...int) func(ctx *CanvasContext) error {
 	}
 }
 
-// Brightness 图像点的亮度调整
-func Brightness(src image.Image, brightnessVal int) image.Image {
-	bounds := src.Bounds()
-	newImg := image.NewRGBA(bounds)
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := src.At(x, y).RGBA()
-			newR := int(r>>8) + brightnessVal
-			newG := int(g>>8) + brightnessVal
-			newB := int(b>>8) + brightnessVal
-			if newR < 0 {
-				newR = 0
-			} else if newR > 255 {
-				newR = 255
-			}
-			if newG < 0 {
-				newG = 0
-			} else if newG > 255 {
-				newG = 255
-			}
-			if newB < 0 {
-				newB = 0
-			} else if newB > 255 {
-				newB = 255
-			}
-			newImg.Set(x, y, color.RGBA{R: uint8(newR), G: uint8(newG), B: uint8(newB), A: uint8(a >> 8)})
-		}
-	}
-	return newImg
-}
-
-// OpsBrightness 图像点的亮度调整操作
-func OpsBrightness(brightnessVal int) func(ctx *CanvasContext) error {
-	return func(ctx *CanvasContext) error {
-		ctx.Dst = Brightness(ctx.Dst, brightnessVal).(*image.RGBA)
-		return nil
-	}
-}
-
 // Transposition 图像转置
 func Transposition(src image.Image) image.Image {
 	bounds := src.Bounds()
@@ -370,45 +331,6 @@ func Closing(src image.Image) image.Image {
 func OpsClosing() func(ctx *CanvasContext) error {
 	return func(ctx *CanvasContext) error {
 		ctx.Dst = Closing(ctx.Dst).(*image.RGBA)
-		return nil
-	}
-}
-
-// Hue 调整色相
-// 通过将 RGB 颜色空间转换为 HSV（Hue, Saturation, Value）颜色空间，调整色相（Hue）值后再转换回 RGB 颜色空间
-// hueAdjustment : 色相调整值
-func Hue(src image.Image, hueAdjustment float64) image.Image {
-	bounds := src.Bounds()
-	dst := image.NewRGBA(bounds)
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := src.At(x, y).RGBA()
-			r8 := uint8(r / 256)
-			g8 := uint8(g / 256)
-			b8 := uint8(b / 256)
-			a8 := uint8(a / 256)
-			h, s, v := RGBToHSV(r8, g8, b8)
-			h = math.Mod(h+hueAdjustment, 360)
-			if h < 0 {
-				h += 360
-			}
-			rFloat, gFloat, bFloat := HSVToRGB(h, s, v)
-			dst.Set(x, y, color.RGBA{
-				R: rFloat,
-				G: gFloat,
-				B: bFloat,
-				A: a8,
-			})
-		}
-	}
-	return dst
-}
-
-// OpsHue 调整色相操作
-// hueAdjustment : 色相调整值
-func OpsHue(hueAdjustment float64) func(ctx *CanvasContext) error {
-	return func(ctx *CanvasContext) error {
-		ctx.Dst = Hue(ctx.Dst, hueAdjustment).(*image.RGBA)
 		return nil
 	}
 }
