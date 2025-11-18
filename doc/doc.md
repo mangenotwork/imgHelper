@@ -159,4 +159,29 @@ todo...
 - OpsCorrosion() // 画布和图层体系使用
 ```
 
--
+- 图像膨胀 Dilation
+```
+- Dilation(src image.Image) image.Image
+- OpsDilation() // 画布和图层体系使用
+```
+
+- 图像的开运算 Opening
+```
+- Opening(src image.Image) image.Image
+- OpsOpening()
+```
+
+- 图像的闭运算 Closing
+```
+- Closing(src image.Image) image.Image
+- OpsClosing() // 画布和图层体系使用
+```
+
+- 调整色相 Hue 
+```
+- Hue(src image.Image, hueAdjustment float64) image.Image //  hueAdjustment : 色相调整值
+- OpsHue(hueAdjustment float64) // 画布和图层体系使用
+```
+
+- 
+

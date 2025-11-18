@@ -44,7 +44,11 @@ func main() {
 	//case35()
 	//case36()
 	//case37()
-	case38()
+	//case38()
+	//case39()
+	//case40()
+	//case41()
+	case42()
 }
 
 // 创建一个画布
@@ -593,4 +597,28 @@ func case37() {
 func case38() {
 	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
 	_ = imgLayer.Ext(imgHelper.OpsCorrosion()).Save("./case38.png")
+}
+
+// OpsDilation 图像膨胀操作
+func case39() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsDilation()).Save("./case39.png")
+}
+
+// OpsOpening 图像的开运算操作
+func case40() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsOpening()).Save("./case40.png")
+}
+
+// OpsClosing 图像的闭运算操作
+func case41() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsClosing()).Save("./case41.png")
+}
+
+// OpsHue 调整色相操作
+func case42() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsHue(44.4)).Save("./case42.png")
 }

@@ -292,3 +292,123 @@ func OpsCorrosion() func(ctx *CanvasContext) error {
 		return nil
 	}
 }
+
+// Dilation 图像膨胀
+func Dilation(src image.Image) image.Image {
+	src = BinaryImg(src) // 先二值化,提升膨胀效果
+	bounds := src.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	dst := image.NewRGBA(bounds)
+	structuringElement := [3][3]bool{
+		{true, true, true},
+		{true, true, true},
+		{true, true, true},
+	}
+	for y := 1; y < height-1; y++ {
+		for x := 1; x < width-1; x++ {
+			anyForeground := false
+			for ky := 0; ky < 3; ky++ {
+				for kx := 0; kx < 3; kx++ {
+					if structuringElement[ky][kx] {
+						nx := x + kx - 1
+						ny := y + ky - 1
+						r, _, _, _ := src.At(nx, ny).RGBA()
+						if r/256 >= 128 {
+							anyForeground = true
+							break
+						}
+					}
+				}
+				if anyForeground {
+					break
+				}
+			}
+			if anyForeground {
+				dst.Set(x, y, color.RGBA{R: 255, G: 255, B: 255, A: 255})
+			} else {
+				dst.Set(x, y, color.RGBA{R: 0, G: 0, B: 0, A: 255})
+			}
+		}
+	}
+	return dst
+}
+
+// OpsDilation 图像膨胀操作
+func OpsDilation() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Dilation(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
+
+// Opening 图像的开运算
+// 图像的开运算（Opening）是一种形态学操作，它是先对图像进行腐蚀操作，然后再进行膨胀操作。开运算可以去除图像中的小物体、分离物体以及平滑物体的边界
+func Opening(src image.Image) image.Image {
+	src = Corrosion(src)
+	src = Dilation(src)
+	return src
+}
+
+// OpsOpening 图像的开运算操作
+func OpsOpening() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Opening(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
+
+// Closing 图像的闭运算
+// 图像的闭运算（Closing）是一种形态学操作，它是先对图像进行膨胀操作，然后再进行腐蚀操作。闭运算常用于填充物体内的小孔、连接邻近的物体等。
+func Closing(src image.Image) image.Image {
+	src = Dilation(src)
+	src = Corrosion(src)
+	return src
+}
+
+// OpsClosing 图像的闭运算操作
+func OpsClosing() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Closing(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
+
+// Hue 调整色相
+// 通过将 RGB 颜色空间转换为 HSV（Hue, Saturation, Value）颜色空间，调整色相（Hue）值后再转换回 RGB 颜色空间
+// hueAdjustment : 色相调整值
+func Hue(src image.Image, hueAdjustment float64) image.Image {
+	bounds := src.Bounds()
+	dst := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := src.At(x, y).RGBA()
+			r8 := uint8(r / 256)
+			g8 := uint8(g / 256)
+			b8 := uint8(b / 256)
+			a8 := uint8(a / 256)
+			h, s, v := RGBToHSV(r8, g8, b8)
+			h = math.Mod(h+hueAdjustment, 360)
+			if h < 0 {
+				h += 360
+			}
+			rFloat, gFloat, bFloat := HSVToRGB(h, s, v)
+			dst.Set(x, y, color.RGBA{
+				R: rFloat,
+				G: gFloat,
+				B: bFloat,
+				A: a8,
+			})
+		}
+	}
+	return dst
+}
+
+// OpsHue 调整色相操作
+// hueAdjustment : 色相调整值
+func OpsHue(hueAdjustment float64) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Hue(ctx.Dst, hueAdjustment).(*image.RGBA)
+		return nil
+	}
+}
