@@ -334,3 +334,223 @@ func OpsClosing() func(ctx *CanvasContext) error {
 		return nil
 	}
 }
+
+// GaussianBlur1D  一维高斯模糊
+// sigma : 降噪程度
+func GaussianBlur1D(src image.Image, sigma float64) image.Image {
+	bounds := src.Bounds()
+	result := image.NewRGBA(bounds)
+	kernel := generateGaussianKernel(sigma)
+	// 水平方向模糊
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			var rSum, gSum, bSum, aSum float64
+			kernelSize := len(kernel)
+			halfKernelSize := kernelSize / 2
+			for i := -halfKernelSize; i <= halfKernelSize; i++ {
+				newX := x + i
+				if newX < bounds.Min.X {
+					newX = bounds.Min.X
+				} else if newX >= bounds.Max.X {
+					newX = bounds.Max.X - 1
+				}
+				r, g, b, a := src.At(newX, y).RGBA()
+				r = r / 256
+				g = g / 256
+				b = b / 256
+				rSum += float64(r) * kernel[i+halfKernelSize]
+				gSum += float64(g) * kernel[i+halfKernelSize]
+				bSum += float64(b) * kernel[i+halfKernelSize]
+				aSum += float64(a) * kernel[i+halfKernelSize]
+			}
+			result.Set(x, y, color.RGBA{R: uint8(rSum), G: uint8(gSum), B: uint8(bSum), A: uint8(aSum)})
+		}
+	}
+	// 垂直方向模糊
+	temp := image.NewRGBA(bounds)
+	for x := bounds.Min.X; x < bounds.Max.X; x++ {
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			var rSum, gSum, bSum, aSum float64
+			kernelSize := len(kernel)
+			halfKernelSize := kernelSize / 2
+			for i := -halfKernelSize; i <= halfKernelSize; i++ {
+				newY := y + i
+				if newY < bounds.Min.Y {
+					newY = bounds.Min.Y
+				} else if newY >= bounds.Max.Y {
+					newY = bounds.Max.Y - 1
+				}
+				r, g, b, a := result.At(x, newY).RGBA()
+				r = r / 256
+				g = g / 256
+				b = b / 256
+				rSum += float64(r) * kernel[i+halfKernelSize]
+				gSum += float64(g) * kernel[i+halfKernelSize]
+				bSum += float64(b) * kernel[i+halfKernelSize]
+				aSum += float64(a) * kernel[i+halfKernelSize]
+			}
+			temp.Set(x, y, color.RGBA{R: uint8(rSum), G: uint8(gSum), B: uint8(bSum), A: uint8(aSum)})
+		}
+	}
+	return temp
+}
+
+// OpsGaussianBlur1D  一维高斯模糊
+func OpsGaussianBlur1D(sigma float64) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = GaussianBlur1D(ctx.Dst, sigma).(*image.RGBA)
+		return nil
+	}
+}
+
+// Thinning 图像细化
+// 针对文本图像进行细化处理
+func Thinning(src image.Image) image.Image {
+	bin := binaryImgForText(src)
+	height, width := len(bin), len(bin[0])
+	// 复制原图避免修改输入
+	thinned := make([][]uint8, height)
+	for y := range bin {
+		thinned[y] = make([]uint8, width)
+		copy(thinned[y], bin[y])
+	}
+	for {
+		deleted := false // 标记本轮是否删除像素
+		// 标记符合条件的像素
+		toDelete1 := make([][]bool, height)
+		for y := 0; y < height; y++ {
+			toDelete1[y] = make([]bool, width)
+			for x := 0; x < width; x++ {
+				if thinned[y][x] != 255 {
+					continue // 跳过背景
+				}
+				n := countForeground(thinned, x, y)
+				c := countConnections(thinned, x, y)
+				// 端点保护：N(p1)=1时不删除
+				if n == 1 {
+					continue
+				}
+				// 原条件：2 ≤ N(p1) ≤ 6 且 C(p1)=1
+				if n < 2 || n > 6 || c != 1 {
+					continue
+				}
+				// 条件4-5：p2*p4*p6=0 且 p4*p6*p8=0
+				p2 := getNeighbor(thinned, x, y, 0)
+				p4 := getNeighbor(thinned, x, y, 2)
+				p6 := getNeighbor(thinned, x, y, 4)
+				p8 := getNeighbor(thinned, x, y, 6)
+				if p2*p4*p6 == 0 && p4*p6*p8 == 0 {
+					toDelete1[y][x] = true
+					deleted = true
+				}
+			}
+		}
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
+				if toDelete1[y][x] {
+					thinned[y][x] = 0
+				}
+			}
+		}
+
+		// 标记符合条件的像素
+		toDelete2 := make([][]bool, height)
+		for y := 0; y < height; y++ {
+			toDelete2[y] = make([]bool, width)
+			for x := 0; x < width; x++ {
+				if thinned[y][x] != 255 {
+					continue // 跳过背景
+				}
+				n := countForeground(thinned, x, y)
+				c := countConnections(thinned, x, y)
+				// 【新增】端点保护：N(p1)=1时不删除
+				if n == 1 {
+					continue
+				}
+				// 原条件：2 ≤ N(p1) ≤ 6 且 C(p1)=1
+				if n < 2 || n > 6 || c != 1 {
+					continue
+				}
+				// 条件4-5：p2*p4*p8=0 且 p2*p6*p8=0
+				p2 := getNeighbor(thinned, x, y, 0)
+				p4 := getNeighbor(thinned, x, y, 2)
+				p6 := getNeighbor(thinned, x, y, 4)
+				p8 := getNeighbor(thinned, x, y, 6)
+				if p2*p4*p8 == 0 && p2*p6*p8 == 0 {
+					toDelete2[y][x] = true
+					deleted = true
+				}
+			}
+		}
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
+				if toDelete2[y][x] {
+					thinned[y][x] = 0
+				}
+			}
+		}
+		if !deleted {
+			break
+		}
+	}
+	height, width = len(thinned), len(thinned[0])
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			val := thinned[y][x]
+			img.SetRGBA(x, y, color.RGBA{R: val, G: val, B: val, A: 255}) // 灰度图（骨架为白）
+		}
+	}
+	return img
+}
+
+// OpsThinning 图像细化
+func OpsThinning() func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Thinning(ctx.Dst).(*image.RGBA)
+		return nil
+	}
+}
+
+// SmoothProcessing 彩色图像的平滑处理
+// kernelSize : 平滑处理的核大小
+func SmoothProcessing(src image.Image, kernelSize int) image.Image {
+	bounds := src.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	dst := image.NewRGBA(bounds)
+	halfKernel := kernelSize / 2
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			var rSum, gSum, bSum, count int
+			for ky := -halfKernel; ky <= halfKernel; ky++ {
+				for kx := -halfKernel; kx <= halfKernel; kx++ {
+					nx := x + kx
+					ny := y + ky
+					if nx >= 0 && nx < width && ny >= 0 && ny < height {
+						r, g, b, _ := src.At(nx, ny).RGBA()
+						rSum += int(r / 256)
+						gSum += int(g / 256)
+						bSum += int(b / 256)
+						count++
+					}
+				}
+			}
+			if count > 0 {
+				r := uint8(rSum / count)
+				g := uint8(gSum / count)
+				b := uint8(bSum / count)
+				dst.Set(x, y, color.RGBA{R: r, G: g, B: b, A: 255})
+			}
+		}
+	}
+	return dst
+}
+
+// OpsSmoothProcessing 彩色图像的平滑处理
+func OpsSmoothProcessing(kernelSize int) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = SmoothProcessing(ctx.Dst, kernelSize).(*image.RGBA)
+		return nil
+	}
+}

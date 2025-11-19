@@ -54,7 +54,17 @@ func main() {
 	//case45()
 	//case46()
 	//case47()
-	case48()
+	//case48()
+	//case49()
+	//case50()
+	//case51()
+	//case53()
+	//case54()
+	//case55()
+	//case56()
+	//case57()
+	//case58()
+	case59()
 }
 
 // 创建一个画布
@@ -663,4 +673,70 @@ func case47() {
 func case48() {
 	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
 	_ = imgLayer.Ext(imgHelper.OpsAdjustExposure(2)).Save("./case48.png")
+}
+
+// OpsColorTemperature 调整色温
+func case49() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsColorTemperature(2000.2)).Save("./case49.png")
+}
+
+// OpsColorTone 调整色调
+func case50() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsColorTone(100.2)).Save("./case50.png")
+}
+
+// OpsGaussianBlur1D  一维高斯模糊
+func case51() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsGaussianBlur1D(2.2)).Save("./case51.png")
+}
+
+// OpsDenoise 图像降噪
+func case52() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsDenoise(2.2)).Save("./case52.png")
+}
+
+// OpsThinning 图像细化
+func case53() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsThinning()).Save("./case53.png")
+}
+
+// OpsRigidTransform 刚性变换（旋转、缩放、平移）
+func case54() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsRigidTransform(10, 1, 0, 0)).Save("./case54.png")
+}
+
+// OpsAffineTransform 仿射变换
+func case55() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAffineTransform([6]float64{0, 50, 100, 100, 50, 0})).Save("./case55.png")
+}
+
+// OpsPerspectiveTransform 透视变换
+func case56() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsPerspectiveTransform([9]float64{0, 50, 100, 100, 0, 0, 50, 100, 100})).Save("./case56.png")
+}
+
+// OpsAffineTransform23 仿射变换通过 2x3 矩阵实现
+func case57() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsAffineTransform23([2][3]float64{{0, 50, 100}, {100, 80, 30}})).Save("./case57.png")
+}
+
+// OpsPerspectiveTransform33 透视变换通过 3x3 矩阵实现
+func case58() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsPerspectiveTransform33([3][3]float64{{0, 50, 100}, {100, 80, 30}, {10, 50, 30}})).Save("./case58.png")
+}
+
+// OpsSmoothProcessing 彩色图像的平滑处理
+func case59() {
+	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
+	_ = imgLayer.Ext(imgHelper.OpsSmoothProcessing(3)).Save("./case59.png")
 }

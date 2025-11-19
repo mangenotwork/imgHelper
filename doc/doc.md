@@ -219,4 +219,50 @@ todo...
 - OpsAdjustExposure(exposure float64) // 画布和图层体系使用
 ```
 
--
+- 调整色温 ColorTemperature
+```
+- ColorTemperature(src image.Image, temperature float64) image.Image
+- OpsColorTemperature(temperature float64) // 画布和图层体系使用
+```
+
+- 调整色调 ColorTone
+```
+- ColorTone(src image.Image, adjustmentValue float64) image.Image
+- OpsColorTone(adjustmentValue float64) // 画布和图层体系使用
+```
+
+- 图像降噪 Denoise
+```
+- Denoise(src image.Image, sigma float64) image.Image
+- GaussianBlur1D(src image.Image, sigma float64) image.Image // 一维高斯模糊 可以用于降噪
+- OpsDenoise(sigma float64) // 画布和图层体系使用
+- OpsGaussianBlur1D(sigma float64) // 画布和图层体系使用
+```
+
+- 图像细化 Thinning
+```
+- Thinning(src image.Image) image.Image // 针对文本图像进行细化处理
+- OpsThinning() // 画布和图层体系使用
+```
+
+- 仿射变换 Transform
+```
+- RigidTransform(img image.Image, angle, scale, tx, ty float64) *image.RGBA // 刚性变换（旋转、缩放、平移）
+- OpsRigidTransform(angle, scale, tx, ty float64) 
+- AffineTransform(img image.Image, mat [6]float64) *image.RGBA // 仿射变换
+- OpsAffineTransform(mat [6]float64)
+- PerspectiveTransform(img image.Image, mat [9]float64) *image.RGBA // 透视变换
+- OpsPerspectiveTransform(mat [9]float64)
+- AffineTransform23(img *image.RGBA, matrix [2][3]float64) *image.RGBA // 仿射变换通过 2x3 矩阵实现
+- OpsAffineTransform23(matrix [2][3]float64)
+- PerspectiveTransform33(img *image.RGBA, matrix [3][3]float64) *image.RGBA // 透视变换通过 3x3 矩阵实现
+- OpsPerspectiveTransform33(matrix [3][3]float64)
+```
+
+- 彩色图像的平滑处理 SmoothProcessing
+```
+- SmoothProcessing(src image.Image, kernelSize int) image.Image  // kernelSize : 平滑处理的核大小
+- OpsSmoothProcessing(kernelSize int)
+```
+
+

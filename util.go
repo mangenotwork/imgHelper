@@ -1,6 +1,7 @@
 package imgHelper
 
 import (
+	"image"
 	"image/color"
 	"math"
 )
@@ -201,4 +202,283 @@ func HSVToRGB(h, s, v float64) (uint8, uint8, uint8) {
 	g := uint8((g1 + m) * 255)
 	b := uint8((b1 + m) * 255)
 	return r, g, b
+}
+
+// 生成一维高斯核
+func generateGaussianKernel(sigma float64) []float64 {
+	size := int(math.Ceil(sigma * 3))
+	kernel := make([]float64, 2*size+1)
+	sum := 0.0
+	for i := -size; i <= size; i++ {
+		kernel[i+size] = math.Exp(-float64(i*i) / (2 * sigma * sigma))
+		sum += kernel[i+size]
+	}
+	for i := range kernel {
+		kernel[i] /= sum
+	}
+	return kernel
+}
+
+// 针对黑色文字+浅色背景，强制将文字转为前景（255），背景转为0
+func binaryImgForText(img image.Image) [][]uint8 {
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+	bin := make([][]uint8, height)
+	for y := 0; y < height; y++ {
+		bin[y] = make([]uint8, width)
+		for x := 0; x < width; x++ {
+			// 转为灰度后，低于阈值的文字像素设为255，否则为0
+			r, g, b, _ := img.At(x, y).RGBA()
+			gray := uint8(0.299*float64(r>>8) + 0.587*float64(g>>8) + 0.114*float64(b>>8))
+			if gray <= 50 {
+				bin[y][x] = 255 // 文字（前景）
+			} else {
+				bin[y][x] = 0 // 背景
+			}
+		}
+	}
+	return bin
+}
+
+// 8邻域索引（顺时针：p2-p9，对应坐标偏移）
+var neighbors = []image.Point{
+	{0, -1},  // p2: (x, y-1)
+	{1, -1},  // p3: (x+1, y-1)
+	{1, 0},   // p4: (x+1, y)
+	{1, 1},   // p5: (x+1, y+1)
+	{0, 1},   // p6: (x, y+1)
+	{-1, 1},  // p7: (x-1, y+1)
+	{-1, 0},  // p8: (x-1, y)
+	{-1, -1}, // p9: (x-1, y-1)
+}
+
+// countConnections 计算8邻域的连接数（衡量像素的"拐角"程度）
+func countConnections(bin [][]uint8, x, y int) int {
+	height, width := len(bin), len(bin[0])
+	// 取p2-p9的二值（1=前景，0=背景）
+	p := make([]int, 8)
+	for i, n := range neighbors {
+		nx, ny := x+n.X, y+n.Y
+		if nx >= 0 && nx < width && ny >= 0 && ny < height && bin[ny][nx] == 255 {
+			p[i] = 1
+		}
+	}
+	// 连接数=相邻像素从0→1的次数（p9与p2相邻）
+	count := 0
+	for i := 0; i < 8; i++ {
+		j := (i + 1) % 8
+		if p[i] == 0 && p[j] == 1 {
+			count++
+		}
+	}
+	return count
+}
+
+// countForeground 计算8邻域中前景像素（255）的数量
+func countForeground(bin [][]uint8, x, y int) int {
+	count := 0
+	height, width := len(bin), len(bin[0])
+	for _, n := range neighbors {
+		nx, ny := x+n.X, y+n.Y
+		// 边界外视为背景
+		if nx >= 0 && nx < width && ny >= 0 && ny < height && bin[ny][nx] == 255 {
+			count++
+		}
+	}
+	return count
+}
+
+// getNeighbor 获取指定邻域像素的二值（1=前景，0=背景）
+func getNeighbor(bin [][]uint8, x, y, idx int) int {
+	n := neighbors[idx]
+	nx, ny := x+n.X, y+n.Y
+	height, width := len(bin), len(bin[0])
+	if nx >= 0 && nx < width && ny >= 0 && ny < height && bin[ny][nx] == 255 {
+		return 1
+	}
+	return 0
+}
+
+// 克隆图像
+func cloneImage(img image.Image) *image.RGBA {
+	bounds := img.Bounds()
+	clone := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			clone.Set(x, y, img.At(x, y))
+		}
+	}
+	return clone
+}
+
+// 检查坐标是否在边界内
+func inBounds(bounds image.Rectangle, x, y int) bool {
+	return x >= bounds.Min.X && x < bounds.Max.X &&
+		y >= bounds.Min.Y && y < bounds.Max.Y
+}
+
+// image.Image to *image.NRGBA
+func imageToNRGBA(src image.Image) *image.NRGBA {
+	srcBounds := src.Bounds()
+	dstBounds := srcBounds.Sub(srcBounds.Min)
+
+	dst := image.NewNRGBA(dstBounds)
+
+	dstMinX := dstBounds.Min.X
+	dstMinY := dstBounds.Min.Y
+
+	srcMinX := srcBounds.Min.X
+	srcMinY := srcBounds.Min.Y
+	srcMaxX := srcBounds.Max.X
+	srcMaxY := srcBounds.Max.Y
+
+	switch src0 := src.(type) {
+
+	case *image.NRGBA:
+		rowSize := srcBounds.Dx() * 4
+		numRows := srcBounds.Dy()
+
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		j0 := src0.PixOffset(srcMinX, srcMinY)
+
+		di := dst.Stride
+		dj := src0.Stride
+
+		for row := 0; row < numRows; row++ {
+			copy(dst.Pix[i0:i0+rowSize], src0.Pix[j0:j0+rowSize])
+			i0 += di
+			j0 += dj
+		}
+
+	case *image.NRGBA64:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				j := src0.PixOffset(x, y)
+
+				dst.Pix[i+0] = src0.Pix[j+0]
+				dst.Pix[i+1] = src0.Pix[j+2]
+				dst.Pix[i+2] = src0.Pix[j+4]
+				dst.Pix[i+3] = src0.Pix[j+6]
+
+			}
+		}
+
+	case *image.RGBA:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				j := src0.PixOffset(x, y)
+				a := src0.Pix[j+3]
+				dst.Pix[i+3] = a
+
+				switch a {
+				case 0:
+					dst.Pix[i+0] = 0
+					dst.Pix[i+1] = 0
+					dst.Pix[i+2] = 0
+				case 0xff:
+					dst.Pix[i+0] = src0.Pix[j+0]
+					dst.Pix[i+1] = src0.Pix[j+1]
+					dst.Pix[i+2] = src0.Pix[j+2]
+				default:
+					dst.Pix[i+0] = uint8(uint16(src0.Pix[j+0]) * 0xff / uint16(a))
+					dst.Pix[i+1] = uint8(uint16(src0.Pix[j+1]) * 0xff / uint16(a))
+					dst.Pix[i+2] = uint8(uint16(src0.Pix[j+2]) * 0xff / uint16(a))
+				}
+			}
+		}
+
+	case *image.RGBA64:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				j := src0.PixOffset(x, y)
+				a := src0.Pix[j+6]
+				dst.Pix[i+3] = a
+
+				switch a {
+				case 0:
+					dst.Pix[i+0] = 0
+					dst.Pix[i+1] = 0
+					dst.Pix[i+2] = 0
+				case 0xff:
+					dst.Pix[i+0] = src0.Pix[j+0]
+					dst.Pix[i+1] = src0.Pix[j+2]
+					dst.Pix[i+2] = src0.Pix[j+4]
+				default:
+					dst.Pix[i+0] = uint8(uint16(src0.Pix[j+0]) * 0xff / uint16(a))
+					dst.Pix[i+1] = uint8(uint16(src0.Pix[j+2]) * 0xff / uint16(a))
+					dst.Pix[i+2] = uint8(uint16(src0.Pix[j+4]) * 0xff / uint16(a))
+				}
+			}
+		}
+
+	case *image.Gray:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				j := src0.PixOffset(x, y)
+				c := src0.Pix[j]
+				dst.Pix[i+0] = c
+				dst.Pix[i+1] = c
+				dst.Pix[i+2] = c
+				dst.Pix[i+3] = 0xff
+
+			}
+		}
+
+	case *image.Gray16:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				j := src0.PixOffset(x, y)
+				c := src0.Pix[j]
+				dst.Pix[i+0] = c
+				dst.Pix[i+1] = c
+				dst.Pix[i+2] = c
+				dst.Pix[i+3] = 0xff
+
+			}
+		}
+
+	case *image.YCbCr:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				yj := src0.YOffset(x, y)
+				cj := src0.COffset(x, y)
+				r, g, b := color.YCbCrToRGB(src0.Y[yj], src0.Cb[cj], src0.Cr[cj])
+
+				dst.Pix[i+0] = r
+				dst.Pix[i+1] = g
+				dst.Pix[i+2] = b
+				dst.Pix[i+3] = 0xff
+
+			}
+		}
+
+	default:
+		i0 := dst.PixOffset(dstMinX, dstMinY)
+		for y := srcMinY; y < srcMaxY; y, i0 = y+1, i0+dst.Stride {
+			for x, i := srcMinX, i0; x < srcMaxX; x, i = x+1, i+4 {
+
+				c := color.NRGBAModel.Convert(src.At(x, y)).(color.NRGBA)
+
+				dst.Pix[i+0] = c.R
+				dst.Pix[i+1] = c.G
+				dst.Pix[i+2] = c.B
+				dst.Pix[i+3] = c.A
+
+			}
+		}
+	}
+
+	return dst
 }

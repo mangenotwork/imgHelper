@@ -356,3 +356,140 @@ func OpsAdjustExposure(exposure float64) func(ctx *CanvasContext) error {
 		return nil
 	}
 }
+
+// ColorTemperature 调整色温
+// 通过调整图像中 RGB 颜色通道的比例来模拟不同的色温效果
+// temperature:色温值
+func ColorTemperature(src image.Image, temperature float64) image.Image {
+	bounds := src.Bounds()
+	dst := image.NewRGBA(bounds)
+	rGain, gGain, bGain := calculateColorGains(temperature)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := src.At(x, y).RGBA()
+			r = r / 256
+			g = g / 256
+			b = b / 256
+			newR := int(math.Min(255, math.Max(0, float64(r)*rGain)))
+			newG := int(math.Min(255, math.Max(0, float64(g)*gGain)))
+			newB := int(math.Min(255, math.Max(0, float64(b)*bGain)))
+			dst.Set(x, y, color.RGBA{R: uint8(newR), G: uint8(newG), B: uint8(newB), A: uint8(a)})
+		}
+	}
+	return dst
+}
+
+// calculateColorGains 根据色温计算 RGB 增益
+func calculateColorGains(temperature float64) (float64, float64, float64) {
+	temperature = math.Max(1000, math.Min(40000, temperature)) / 100
+	var r, g, b float64
+	// 计算红色增益
+	if temperature <= 66 {
+		r = 255
+	} else {
+		r = temperature - 60
+		r = 329.698727446 * math.Pow(r, -0.1332047592)
+		if r < 0 {
+			r = 0
+		}
+		if r > 255 {
+			r = 255
+		}
+	}
+	// 计算绿色增益
+	if temperature <= 66 {
+		g = temperature
+		g = 99.4708025861*math.Log(g) - 161.1195681661
+		if g < 0 {
+			g = 0
+		}
+		if g > 255 {
+			g = 255
+		}
+	} else {
+		g = temperature - 60
+		g = 288.1221695283 * math.Pow(g, -0.0755148492)
+		if g < 0 {
+			g = 0
+		}
+		if g > 255 {
+			g = 255
+		}
+	}
+	// 计算蓝色增益
+	if temperature >= 66 {
+		b = 255
+	} else {
+		if temperature <= 19 {
+			b = 0
+		} else {
+			b = temperature - 10
+			b = 138.5177312231*math.Log(b) - 305.0447927307
+			if b < 0 {
+				b = 0
+			}
+			if b > 255 {
+				b = 255
+			}
+		}
+	}
+	// 归一化增益
+	maxV := math.Max(r, math.Max(g, b))
+	rGain := r / maxV
+	gGain := g / maxV
+	bGain := b / maxV
+	return rGain, gGain, bGain
+}
+
+// OpsColorTemperature 调整色温
+func OpsColorTemperature(temperature float64) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = ColorTemperature(ctx.Dst, temperature).(*image.RGBA)
+		return nil
+	}
+}
+
+// ColorTone 调整色调
+func ColorTone(src image.Image, adjustmentValue float64) image.Image {
+	bounds := src.Bounds()
+	dst := image.NewRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := src.At(x, y).RGBA()
+			r = r / 256
+			g = g / 256
+			b = b / 256
+			h, s, v := RGBToHSV(uint8(r), uint8(g), uint8(b))
+			h = math.Mod(h+adjustmentValue, 360)
+			if h < 0 {
+				h += 360
+			}
+			r1, g1, b1 := HSVToRGB(h, s, v)
+			dst.Set(x, y, color.RGBA{R: r1, G: g1, B: b1, A: uint8(a)})
+		}
+	}
+	return dst
+}
+
+// OpsColorTone 调整色调
+func OpsColorTone(adjustmentValue float64) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = ColorTone(ctx.Dst, adjustmentValue).(*image.RGBA)
+		return nil
+	}
+}
+
+// Denoise 图像降噪
+// 通过调整高斯核的大小来降噪
+// sigma:  ∑ (参数是降噪程度)
+func Denoise(src image.Image, sigma float64) image.Image {
+	return GaussianBlur1D(src, sigma)
+}
+
+// OpsDenoise 图像降噪
+func OpsDenoise(sigma float64) func(ctx *CanvasContext) error {
+	return func(ctx *CanvasContext) error {
+		ctx.Dst = Denoise(ctx.Dst, sigma).(*image.RGBA)
+		return nil
+	}
+}
