@@ -7,9 +7,9 @@ import (
 // Layer 图层
 type Layer interface {
 	Draw(ctx *CanvasContext) error // 绘制实现
-	Save(filePath string) error
-	GetResource() image.Image
-	GetXY() (int, int, int, int) // 依次是 x0,y0,x1,y1
+	GetResource() image.Image      // 获取当前图层的图像资源，可以理解为图层也是一张图
+	Save(filePath string) error    // 将当前图层进行存储为图像文件
+	GetXY() (int, int)             // 返回左上角第一个坐标 x0,y0 主要用于确认位置
 }
 
 type RangeType string

@@ -64,7 +64,8 @@ func main() {
 	//case56()
 	//case57()
 	//case58()
-	case59()
+	//case59()
+	case60()
 }
 
 // 创建一个画布
@@ -739,4 +740,14 @@ func case58() {
 func case59() {
 	imgLayer, _ := imgHelper.ImgLayerFromLocalFile("./test.png", imgHelper.Range{})
 	_ = imgLayer.Ext(imgHelper.OpsSmoothProcessing(3)).Save("./case59.png")
+}
+
+// 绘制直线
+func case60() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewLine(100, 180, 700, 260, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 5))
+	gLayer.AddShape(imgHelper.NewLine(200, 0, 600, 120, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 3))
+	gLayer.AddShape(imgHelper.NewLine(200, 0, 200, 400, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 8))
+	cas := imgHelper.CanvasFromLocalImg("./test.png")
+	_ = cas.AddLayer(gLayer).SaveToFile("./case60.png")
 }

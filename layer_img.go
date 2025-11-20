@@ -95,8 +95,8 @@ func (imgLayer *ImgLayer) GetResource() image.Image {
 }
 
 // GetXY 获取当前图像图层的矩形范围
-func (imgLayer *ImgLayer) GetXY() (int, int, int, int) {
-	return imgLayer.X0, imgLayer.Y0, imgLayer.X1, imgLayer.Y1
+func (imgLayer *ImgLayer) GetXY() (int, int) {
+	return imgLayer.X0, imgLayer.Y0
 }
 
 // Scale 将当前图像图层进行缩放

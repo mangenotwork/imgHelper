@@ -134,7 +134,7 @@ func (ctx *CanvasContext) AddLayer(layer Layer) *CanvasContext {
 func (ctx *CanvasContext) Addition(layer Layer) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
@@ -178,7 +178,7 @@ func (ctx *CanvasContext) Addition(layer Layer) *CanvasContext {
 func (ctx *CanvasContext) Subtraction(layer Layer, soft ...bool) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	softFlag := false
@@ -241,7 +241,7 @@ func (ctx *CanvasContext) Subtraction(layer Layer, soft ...bool) *CanvasContext 
 func (ctx *CanvasContext) Multiplication(layer Layer, normalize ...any) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	normalizeFlag := true
@@ -322,7 +322,7 @@ func (ctx *CanvasContext) Multiplication(layer Layer, normalize ...any) *CanvasC
 func (ctx *CanvasContext) Division(layer Layer, opts ...any) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	normalizeFlag := true
@@ -405,7 +405,7 @@ func (ctx *CanvasContext) calcDiv(dst, src uint8, normalize bool, scale, zeroVal
 func (ctx *CanvasContext) AND(layer Layer) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
@@ -445,7 +445,7 @@ func (ctx *CanvasContext) AND(layer Layer) *CanvasContext {
 func (ctx *CanvasContext) OR(layer Layer) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
@@ -486,7 +486,7 @@ func (ctx *CanvasContext) OR(layer Layer) *CanvasContext {
 func (ctx *CanvasContext) XOR(layer Layer) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {
@@ -527,7 +527,7 @@ func (ctx *CanvasContext) XOR(layer Layer) *CanvasContext {
 func (ctx *CanvasContext) NOT(layer Layer) *CanvasContext {
 	src := layer.GetResource()
 	srcBounds := src.Bounds()
-	x0, y0, _, _ := layer.GetXY()
+	x0, y0 := layer.GetXY()
 	dstBounds := ctx.Dst.Bounds()
 
 	for y := srcBounds.Min.Y; y < srcBounds.Max.Y; y++ {

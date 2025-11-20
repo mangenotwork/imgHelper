@@ -95,3 +95,20 @@ func OpenImgFromHttpGet(imgUrl string) (image.Image, error) {
 	}
 	return OpenImgFromReader(resp.Body)
 }
+
+func SaveImg(src image.Image, imgPath string) error {
+	outputFile, err := os.Create(imgPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = outputFile.Close()
+	}()
+
+	// todo 判断图片类型，根据类型进行存储
+	err = png.Encode(outputFile, src)
+	if err != nil {
+		return err
+	}
+	return nil
+}
