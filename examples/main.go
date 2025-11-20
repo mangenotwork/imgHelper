@@ -65,7 +65,10 @@ func main() {
 	//case57()
 	//case58()
 	//case59()
-	case60()
+	//case60()
+	//case61()
+	//case62()
+	case63()
 }
 
 // 创建一个画布
@@ -750,4 +753,27 @@ func case60() {
 	gLayer.AddShape(imgHelper.NewLine(200, 0, 200, 400, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 8))
 	cas := imgHelper.CanvasFromLocalImg("./test.png")
 	_ = cas.AddLayer(gLayer).SaveToFile("./case60.png")
+}
+
+// 绘制实心圆
+func case61() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewSolidCircle(200, 200, 100, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case61.png")
+}
+
+// 绘制非实心圆
+func case62() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewLine(100, 10, 300, 400, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 8))
+	_ = gLayer.AddShape(imgHelper.NewOutlineCircle(200, 200, 100, 5, color.RGBA{R: 255, G: 0, B: 0, A: 255})).Save("./case62_1.png")
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case62.png")
+}
+
+// 绘制三角形
+func case63() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewSolidTriangle(300, 50, 100, 300, 420, 300, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	gLayer.AddShape(imgHelper.NewOutlineTriangle(500, 20, 450, 160, 550, 160, 4, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case63.png")
 }

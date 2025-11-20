@@ -70,7 +70,7 @@ func interpolateColor(c1, c2 color.Color, t float64) (uint8, uint8, uint8, uint8
 
 // 辅助函数：判断点(pX,pY)是否在三角形(x1,y1)-(x2,y2)-(x3,y3)内部（含边界）
 // 原理：通过向量叉乘判断点与三条边的位置关系，若在同一侧则在内部
-func isPointInTriangle(pX, pY, x1, y1, x2, y2, x3, y3 int) bool {
+func isPointInTriangle[T SignedNumeric](pX, pY, x1, y1, x2, y2, x3, y3 T) bool {
 	// 计算三个叉积（判断点在边的哪一侧）
 	cross1 := (x2-x1)*(pY-y1) - (y2-y1)*(pX-x1)
 	cross2 := (x3-x2)*(pY-y2) - (y3-y2)*(pX-x2)
@@ -315,6 +315,15 @@ func cloneImage(img image.Image) *image.RGBA {
 func inBounds(bounds image.Rectangle, x, y int) bool {
 	return x >= bounds.Min.X && x < bounds.Max.X &&
 		y >= bounds.Min.Y && y < bounds.Max.Y
+}
+
+// normalize 向量归一化
+func normalize(x, y float64) (nx, ny float64) {
+	mh := math.Hypot(x, y)
+	if mh < 1e-6 {
+		return 0, 0
+	}
+	return x / mh, y / mh
 }
 
 // image.Image to *image.NRGBA
