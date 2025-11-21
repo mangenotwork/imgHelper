@@ -108,13 +108,24 @@ func case15() {
 }
 ```
 
-### todo 还支持绘制
+### 还支持绘制
 
-几何绘制
+例如几何绘制， 绘制一个斜线，非实心圆形，五角星在画布上
+```
+func case60() {
+	gLayer := imgHelper.NewGeometryLayer()
+	red := color.RGBA{R: 255, G: 0, B: 0, A: 255}
+	gLayer.AddShape(imgHelper.NewLine(100, 180, 700, 260, red, 5))
+	gLayer.AddShape(imgHelper.NewOutlineCircle(200, 200, 100, 5, red))
+	gLayer.AddShape(imgHelper.NewStar(200, 200, 100, 40, 5, 0, red))
+	cas := imgHelper.CanvasFromLocalImg("./test.png")
+	_ = cas.AddLayer(gLayer).SaveToFile("./case60.png")
+}
+```
 
-文本绘制
+todo 例如文本绘制，写一个你好imgHelper
 
-### todo 制点特别的
+### todo 再来点特别的绘制
 
 绘制渐变文本
 
