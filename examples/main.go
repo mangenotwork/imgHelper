@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"os"
 )
 
@@ -68,7 +69,17 @@ func main() {
 	//case60()
 	//case61()
 	//case62()
-	case63()
+	//case63()
+	//case64()
+	//case65()
+	//case66()
+	//case67()
+	//case68()
+	//case69()
+	//case70()
+	//case71()
+	//case72()
+	case73()
 }
 
 // 创建一个画布
@@ -776,4 +787,87 @@ func case63() {
 	gLayer.AddShape(imgHelper.NewSolidTriangle(300, 50, 100, 300, 420, 300, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
 	gLayer.AddShape(imgHelper.NewOutlineTriangle(500, 20, 450, 160, 550, 160, 4, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
 	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case63.png")
+}
+
+// 绘制实心矩形
+func case64() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewSolidRect(10, 10, 200, 200, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case64.png")
+}
+
+// 非实心矩形
+func case65() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewOutlineRect(100, 100, 200, 200, 25, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case65.png")
+}
+
+// 实心多边形
+func case66() {
+	gLayer := imgHelper.NewGeometryLayer()
+	pentagonVertices := [][2]int{
+		{250, 100}, {350, 200}, {300, 350}, {200, 350}, {150, 200},
+	}
+	gLayer.AddShape(imgHelper.NewSolidPolygon(pentagonVertices, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case66.png")
+}
+
+// 非实心多边形
+func case67() {
+	gLayer := imgHelper.NewGeometryLayer()
+	pentagonVertices := [][2]int{
+		{250, 100}, {350, 200}, {300, 350}, {200, 350}, {150, 200},
+	}
+	gLayer.AddShape(imgHelper.NewOutlinePolygon(pentagonVertices, 25, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case67.png")
+}
+
+// 实心椭圆渲染
+func case68() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewSolidEllipse(200, 200, 100, 60, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case68.png")
+}
+
+// NewOutlineEllipse 创建非实心椭圆（参数校验）
+func case69() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewOutlineEllipse(200, 200, 100, 60, 51, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case69.png")
+}
+
+// NewSector 扇形
+func case70() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewSector(200, 200, // 中心点
+		150, 100, // X/Y轴半径
+		math.Pi/4,   // 起始角度（45度）
+		math.Pi*3/4, // 终止角度（135度）
+		math.Pi/6, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case70.png")
+}
+
+// NewStar 星形
+func case71() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewStar(200, 200, // 中心点
+		100, 40, // 外半径和内半径
+		5, // 角数
+		0, color.RGBA{R: 255, G: 0, B: 0, A: 255}))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case71.png")
+}
+
+// NewQuadraticBezier 创建二次贝塞尔曲线
+func case72() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewQuadraticBezier(50, 400, 450, 400, 250, 100, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 3))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case72.png")
+}
+
+// NewCubicBezier 创建三次贝塞尔曲线
+func case73() {
+	gLayer := imgHelper.NewGeometryLayer()
+	gLayer.AddShape(imgHelper.NewCubicBezier(50, 250, 450, 250, 150, 50, 350, 50, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 3))
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case73.png")
 }

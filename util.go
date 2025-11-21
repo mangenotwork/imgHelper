@@ -326,6 +326,11 @@ func normalize(x, y float64) (nx, ny float64) {
 	return x / mh, y / mh
 }
 
+// dot 点积计算
+func dot[T SignedNumeric](v1x, v1y, v2x, v2y T) T {
+	return v1x*v2x + v1y*v2y
+}
+
 // image.Image to *image.NRGBA
 func imageToNRGBA(src image.Image) *image.NRGBA {
 	srcBounds := src.Bounds()
