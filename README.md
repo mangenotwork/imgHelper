@@ -12,12 +12,18 @@
 - ops ：图像处理操作，可以操作图层和画布
 - func : 各种图像处理方法函数，输入 image.Image 处理后 输出 image.Image
 
-
 ## 使用文档
 
 [打开文档](https://github.com/mangenotwork/imgHelper/blob/main/doc/doc.md "点击跳转到文档")
 
 [访问示例](https://github.com/mangenotwork/imgHelper/blob/main/examples/main.go "点击跳转到示例")
+
+## todo
+- 毛玻璃图层
+- 矩形圆角方法
+- 图像分割方法
+- 人脸提取方法
+- 图像排版图层
 
 ### 先来一个例子
 
@@ -143,6 +149,7 @@ todo 例如文本绘制，写一个你好imgHelper
 
 ```
 require golang.org/x/image v0.32.0
+require golang.org/x/text v0.30.0 // indirect
 ```
 
 #### todo 

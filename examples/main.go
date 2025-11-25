@@ -79,7 +79,8 @@ func main() {
 	//case70()
 	//case71()
 	//case72()
-	case73()
+	//case73()
+	case74()
 }
 
 // 创建一个画布
@@ -870,4 +871,11 @@ func case73() {
 	gLayer := imgHelper.NewGeometryLayer()
 	gLayer.AddShape(imgHelper.NewCubicBezier(50, 250, 450, 250, 150, 50, 350, 50, color.RGBA{R: 255, G: 0, B: 0, A: 255}, 3))
 	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(gLayer).SaveToFile("./case73.png")
+}
+
+// 绘制文字
+func case74() {
+	txtLayer := imgHelper.NewTextLayer("mange漫", 44, 10, 40, color.RGBA{R: 255, G: 0, B: 0, A: 255}).
+		SetDPI(96)
+	_ = imgHelper.CanvasFromLocalImg("./test.png").AddLayer(txtLayer).SaveToFile("./case74.png")
 }
